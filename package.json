@@ -1,0 +1,17 @@
+{
+  "name": "telegram-headphones-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot for selling headphones",
+  "main": "bot.js",
+  "type": "module",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "node-telegram-bot-api": "^0.66.0",
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
