@@ -1,119 +1,126 @@
 import TelegramBot from "node-telegram-bot-api"
 import express from "express"
 
+// Отримуємо токен бота зі змінних середовища Vercel
 const token = process.env.TELEGRAM_BOT_TOKEN
 const app = express()
 const port = process.env.PORT || 3000
 
+// Створюємо екземпляр бота.
+// Для Vercel ми не використовуємо polling, а налаштовуємо webhook.
 const bot = new TelegramBot(token)
 
+// Middleware для обробки JSON запитів від Telegram.
 app.use(express.json())
 
+// Обробка webhook запитів.
+// Telegram надсилатиме оновлення на цей шлях.
 app.post(`/api/webhook`, (req, res) => {
   bot.processUpdate(req.body)
-  res.sendStatus(200)
+  res.sendStatus(200) // Важливо завжди відповідати 200 OK
 })
 
+// Здоров'я сервісу (для перевірки, чи працює додаток).
 app.get("/", (req, res) => {
   res.send("Telegram Bot is running!")
 })
 
-// --- ОНОВЛЕНА БАЗА ДАНИХ ТОВАРІВ ---
+// --- База даних товарів ---
 const headphones = {
   soundcore_p30i: {
     name: "Soundcore P30i",
-    price: "Ціну уточнюйте", // Якщо ціна не вказана, можна залишити так або додати поле для ціни
+    price: "Ціну уточнюйте",
     colors: ["black", "pink"],
-    image: "/placeholder.svg?height=300&width=300",
+    image: "/placeholder.svg?height=300&width=300&text=Soundcore+P30i",
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_liberty_4: {
     name: "Soundcore Liberty 4",
     price: "Ціну уточнюйте",
     colors: ["black"],
-    image: "/placeholder.svg?height=300&width=300",
+    image: "/placeholder.svg?height=300&width=300&text=Soundcore+Liberty+4",
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_liberty_3_pro: {
     name: "Soundcore Liberty 3 Pro",
     price: "Ціну уточнюйте",
     colors: ["black", "white"],
-    image: "/placeholder.svg?height=300&width=300",
+    image: "/placeholder.svg?height=300&width=300&text=Soundcore+Liberty+3+Pro",
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_space_a40: {
     name: "Soundcore Space A40",
     price: "Ціну уточнюйте",
     colors: ["black", "white", "dark_blue"],
-    image: "/placeholder.svg?height=300&width=300",
+    image: "/placeholder.svg?height=300&width=300&text=Soundcore+Space+A40",
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_aerofit: {
     name: "Soundcore AeroFit",
     price: "Ціну уточнюйте",
     colors: ["black", "pink"],
-    image: "/placeholder.svg?height=300&width=300",
+    image: "/placeholder.svg?height=300&width=300&text=Soundcore+AeroFit",
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_a20_sleep: {
     name: "Soundcore A20 Sleep",
     price: "Ціну уточнюйте",
     colors: ["white"],
-    image: "/placeholder.svg?height=300&width=300",
+    image: "/placeholder.svg?height=300&width=300&text=Soundcore+A20+Sleep",
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_tune: {
     name: "Soundcore TUNE",
     price: "Ціну уточнюйте",
     colors: ["black"],
-    image: "/placeholder.svg?height=300&width=300",
+    image: "/placeholder.svg?height=300&width=300&text=Soundcore+TUNE",
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_q21i_nc: {
     name: "Soundcore Q21i NC",
     price: "Ціну уточнюйте",
     colors: ["black"],
-    image: "/placeholder.svg?height=300&width=300",
+    image: "/placeholder.svg?height=300&width=300&text=Soundcore+Q21i+NC",
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_space_one: {
     name: "Soundcore Space One",
     price: "Ціну уточнюйте",
     colors: ["black", "light_blue"],
-    image: "/placeholder.svg?height=300&width=300",
+    image: "/placeholder.svg?height=300&width=300&text=Soundcore+Space+One",
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_space_one_pro: {
     name: "Soundcore Space One Pro",
     price: "Ціну уточнюйте",
     colors: ["black", "cream"],
-    image: "/placeholder.svg?height=300&width=300",
+    image: "/placeholder.svg?height=300&width=300&text=Soundcore+Space+One+Pro",
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_liberty_4_pro: {
     name: "Soundcore Liberty 4 Pro",
     price: "Ціну уточнюйте",
     colors: ["black"],
-    image: "/placeholder.svg?height=300&width=300",
+    image: "/placeholder.svg?height=300&width=300&text=Soundcore+Liberty+4+Pro",
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
   soundcore_liberty_4_nc: {
     name: "Soundcore Liberty 4 NC",
     price: "Ціну уточнюйте",
     colors: ["black", "white", "blue"],
-    image: "/placeholder.svg?height=300&width=300",
+    image: "/placeholder.svg?height=300&width=300&text=Soundcore+Liberty+4+NC",
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
   soundcore_aerofit_pro: {
     name: "Soundcore AeroFit Pro",
     price: "Ціну уточнюйте",
     colors: ["black", "blue"],
-    image: "/placeholder.svg?height=300&width=300",
+    image: "/placeholder.svg?height=300&width=300&text=Soundcore+AeroFit+Pro",
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
 }
 
-// ОНОВЛЕНІ Кольори з емодзі (додано нові кольори)
+// Кольори з емодзі
 const colorEmojis = {
   white: "⚪ Білий",
   black: "⚫ Чорний",
@@ -123,10 +130,13 @@ const colorEmojis = {
   pink: "🌸 Рожевий",
   dark_blue: "💙 Темно-синій",
   light_blue: "💧 Світло-блакитний",
-  cream: "🍦 Кремовий", // або '✨ Золотистий' якщо це про вставки
+  cream: "🍦 Кремовий",
 }
 
+// Зберігання кошиків користувачів (в пам'яті, дані втрачаються при перезапуску)
 const userCarts = new Map()
+
+// --- Обробники команд та callback запитів ---
 
 // Команда /start
 bot.onText(/\/start/, async (msg) => {
@@ -159,7 +169,7 @@ bot.on("callback_query", async (callbackQuery) => {
   const data = callbackQuery.data
   const userId = callbackQuery.from.id
 
-  console.log("Received callback query data:", data) // Логуємо дані callback, щоб перевірити, чи кнопки працюють
+  console.log("Received callback query data:", data) // Логуємо дані callback
 
   try {
     if (data === "catalog") {
@@ -188,7 +198,7 @@ bot.on("callback_query", async (callbackQuery) => {
       await showMainMenu(chatId)
     }
 
-    await bot.answerCallbackQuery(callbackQuery.id)
+    await bot.answerCallbackQuery(callbackQuery.id) // Завжди відповідаємо на callbackQuery
   } catch (error) {
     console.error("Error handling callback:", error)
     await bot.answerCallbackQuery(callbackQuery.id, { text: "Виникла помилка" })
@@ -245,7 +255,7 @@ async function showProduct(chatId, productId, userId) {
   const product = headphones[productId]
   if (!product) return
 
-  // Отримуємо актуальний VERCEL_URL тут
+  // Отримуємо актуальний VERCEL_URL тут, щоб він завжди був свіжим
   const currentWebhookUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://example.com" // Запасний варіант для локального тестування
 
   const productMessage = `
@@ -439,7 +449,7 @@ async function checkout(chatId, userId) {
   orderMessage += `📧 Email: orders@headphones.com\n\n`
   orderMessage += `🆔 Номер замовлення: #${Date.now()}`
 
-  userCarts.set(userId, [])
+  userCarts.set(userId, []) // Очищаємо кошик після оформлення
 
   const options = {
     reply_markup: {
