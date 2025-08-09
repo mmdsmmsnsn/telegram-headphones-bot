@@ -1,99 +1,164 @@
 import TelegramBot from "node-telegram-bot-api"
 import express from "express"
 
-// Замініть на ваш токен бота.
-// На Vercel цей токен буде автоматично взято зі змінних середовища.
 const token = process.env.TELEGRAM_BOT_TOKEN
 const app = express()
-const port = process.env.PORT || 3000 // Vercel надасть свій PORT
+const port = process.env.PORT || 3000
 
-// Для webhook замість polling.
-// Бот буде слухати HTTP запити від Telegram.
 const bot = new TelegramBot(token)
 
-// Middleware для обробки JSON запитів від Telegram.
 app.use(express.json())
 
-// Встановлення webhook.
-// Vercel автоматично надає URL через змінну середовища VERCEL_URL.
-// Якщо ви розгортаєте на іншій платформі, можливо, знадобиться інша змінна або ручне введення URL.
 const webhookUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "YOUR_PUBLIC_DOMAIN_OR_IP"
 
 if (webhookUrl && token) {
-  // Встановлюємо webhook на Telegram API.
-  // Шлях `/api/webhook` буде оброблятися нашим Express сервером.
-  // bot.setWebHook(`${webhookUrl}/api/webhook`); // Закоментуйте цей рядок
+  // bot.setWebHook(`${webhookUrl}/api/webhook`); // Залишаємо закоментованим, встановлюємо вручну
   console.log(`Webhook встановлено на: ${webhookUrl}/api/webhook`)
 } else {
   console.error("Webhook URL або Token не визначено. Бот може не працювати належним чином.")
 }
 
-// Обробка webhook запитів.
-// Telegram надсилатиме оновлення на цей шлях.
 app.post(`/api/webhook`, (req, res) => {
   bot.processUpdate(req.body)
-  res.sendStatus(200) // Важливо завжди відповідати 200 OK, щоб Telegram знав, що запит отримано.
+  res.sendStatus(200)
 })
 
-// Здоров'я сервісу (для перевірки, чи працює додаток).
-// Ви можете перейти за цим URL у браузері, щоб перевірити, чи запущений ваш додаток.
 app.get("/", (req, res) => {
   res.send("Telegram Bot is running!")
 })
 
-// --- База даних товарів (скопійовано з попереднього коду) ---
+// --- ОНОВЛЕНА БАЗА ДАНИХ ТОВАРІВ ---
 const headphones = {
-  airpods_pro: {
-    name: "Apple AirPods Pro",
-    price: 249,
-    colors: ["white", "black"],
+  soundcore_p30i: {
+    name: "Soundcore P30i",
+    price: "Ціну уточнюйте", // Якщо ціна не вказана, можна залишити так або додати поле для ціни
+    colors: ["black", "pink"],
     image: "/placeholder.svg?height=300&width=300",
-    description: "Бездротові навушники з активним шумозаглушенням",
+    description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
-  sony_wh1000xm4: {
-    name: "Sony WH-1000XM4",
-    price: 349,
-    colors: ["black", "silver", "blue"],
+  soundcore_liberty_4: {
+    name: "Soundcore Liberty 4",
+    price: "Ціну уточнюйте",
+    colors: ["black"],
     image: "/placeholder.svg?height=300&width=300",
-    description: "Професійні накладні навушники з шумозаглушенням",
+    description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
-  beats_studio3: {
-    name: "Beats Studio3 Wireless",
-    price: 199,
-    colors: ["black", "red", "white", "blue"],
-    image: "/placeholder.svg?height=300&width=300",
-    description: "Стильні бездротові навушники з потужним басом",
-  },
-  bose_qc45: {
-    name: "Bose QuietComfort 45",
-    price: 329,
+  soundcore_liberty_3_pro: {
+    name: "Soundcore Liberty 3 Pro",
+    price: "Ціну уточнюйте",
     colors: ["black", "white"],
     image: "/placeholder.svg?height=300&width=300",
-    description: "Комфортні навушники з найкращим шумозаглушенням",
+    description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
+  },
+  soundcore_space_a40: {
+    name: "Soundcore Space A40",
+    price: "Ціну уточнюйте",
+    colors: ["black", "white", "dark_blue"],
+    image: "/placeholder.svg?height=300&width=300",
+    description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
+  },
+  soundcore_aerofit: {
+    name: "Soundcore AeroFit",
+    price: "Ціну уточнюйте",
+    colors: ["black", "pink"],
+    image: "/placeholder.svg?height=300&width=300",
+    description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
+  },
+  soundcore_a20_sleep: {
+    name: "Soundcore A20 Sleep",
+    price: "Ціну уточнюйте",
+    colors: ["white"],
+    image: "/placeholder.svg?height=300&width=300",
+    description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
+  },
+  soundcore_tune: {
+    name: "Soundcore TUNE",
+    price: "Ціну уточнюйте",
+    colors: ["black"],
+    image: "/placeholder.svg?height=300&width=300",
+    description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
+  },
+  soundcore_q21i_nc: {
+    name: "Soundcore Q21i NC",
+    price: "Ціну уточнюйте",
+    colors: ["black"],
+    image: "/placeholder.svg?height=300&width=300",
+    description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
+  },
+  soundcore_space_one: {
+    name: "Soundcore Space One",
+    price: "Ціну уточнюйте",
+    colors: ["black", "light_blue"],
+    image: "/placeholder.svg?height=300&width=300",
+    description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
+  },
+  soundcore_space_one_pro: {
+    name: "Soundcore Space One Pro",
+    price: "Ціну уточнюйте",
+    colors: ["black", "cream"],
+    image: "/placeholder.svg?height=300&width=300",
+    description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
+  },
+  soundcore_liberty_4_pro: {
+    name: "Soundcore Liberty 4 Pro",
+    price: "Ціну уточнюйте",
+    colors: ["black"],
+    image: "/placeholder.svg?height=300&width=300",
+    description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
+  },
+  soundcore_liberty_4_nc: {
+    name: "Soundcore Liberty 4 NC",
+    price: "Ціну уточнюйте",
+    colors: ["black", "white", "blue"],
+    image: "/placeholder.svg?height=300&width=300",
+    description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
+  },
+  soundcore_aerofit_pro: {
+    name: "Soundcore AeroFit Pro",
+    price: "Ціну уточнюйте",
+    colors: ["black", "blue"],
+    image: "/placeholder.svg?height=300&width=300",
+    description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
 }
 
-// Кольори з емодзі
+// ОНОВЛЕНІ Кольори з емодзі (додано нові кольори)
 const colorEmojis = {
   white: "⚪ Білий",
   black: "⚫ Чорний",
   silver: "🔘 Сріблястий",
   blue: "🔵 Синій",
   red: "🔴 Червоний",
+  pink: "🌸 Рожевий",
+  dark_blue: "💙 Темно-синій",
+  light_blue: "💧 Світло-блакитний",
+  cream: "🍦 Кремовий", // або '✨ Золотистий' якщо це про вставки
 }
 
-// Зберігання кошиків користувачів.
-// Увага: при перезапуску сервера ці дані будуть втрачені.
-// Для продакшену рекомендується використовувати базу даних (Supabase, Neon, MongoDB тощо).
 const userCarts = new Map()
-
-// --- Обробники команд та callback запитів (скопійовано з попереднього коду) ---
 
 // Команда /start
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id
-  // Змінено: дуже просте повідомлення без кнопок
-  await bot.sendMessage(chatId, "Привіт! Бот працює. Спробую відповісти на /start.")
+  const welcomeMessage = `
+🎧 Ласкаво просимо до магазину навушників Soundcore!
+
+Всі навушники нові, але упаковка відкрита. Гарантій немає.
+
+Оберіть дію:
+  `
+
+  const options = {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: "🛍️ Переглянути каталог", callback_data: "catalog" }],
+        [{ text: "🛒 Мій кошик", callback_data: "cart" }],
+        [{ text: "ℹ️ Про нас", callback_data: "about" }],
+      ],
+    },
+  }
+
+  await bot.sendMessage(chatId, welcomeMessage, options)
 })
 
 // Обробка callback запитів
@@ -130,7 +195,6 @@ bot.on("callback_query", async (callbackQuery) => {
       await showMainMenu(chatId)
     }
 
-    // Завжди відповідайте на callbackQuery, щоб кнопка не залишалася "завантаженою".
     await bot.answerCallbackQuery(callbackQuery.id)
   } catch (error) {
     console.error("Error handling callback:", error)
@@ -141,9 +205,9 @@ bot.on("callback_query", async (callbackQuery) => {
 // Показати головне меню
 async function showMainMenu(chatId) {
   const welcomeMessage = `
-🎧 Ласкаво просимо до магазину навушників!
+🎧 Ласкаво просимо до магазину навушників Soundcore!
 
-Тут ви можете придбати найкращі навушники від провідних брендів.
+Всі навушники нові, але упаковка відкрита. Гарантій немає.
 
 Оберіть дію:
   `
@@ -163,11 +227,11 @@ async function showMainMenu(chatId) {
 
 // Показати каталог
 async function showCatalog(chatId) {
-  const catalogMessage = "🎧 Каталог навушників:\n\nОберіть модель для детального перегляду:"
+  const catalogMessage = "🎧 Каталог навушників Soundcore:\n\nОберіть модель для детального перегляду:"
 
   const keyboard = Object.keys(headphones).map((productId) => [
     {
-      text: `${headphones[productId].name} - $${headphones[productId].price}`,
+      text: `${headphones[productId].name} ${headphones[productId].price !== "Ціну уточнюйте" ? `- $${headphones[productId].price}` : ""}`,
       callback_data: `product_${productId}`,
     },
   ])
@@ -191,7 +255,7 @@ async function showProduct(chatId, productId, userId) {
   const productMessage = `
 🎧 ${product.name}
 
-💰 Ціна: $${product.price}
+${product.price !== "Ціну уточнюйте" ? `💰 Ціна: $${product.price}` : "💰 Ціна: Уточнюйте"}
 📝 ${product.description}
 
 🎨 Доступні кольори:
@@ -212,7 +276,6 @@ async function showProduct(chatId, productId, userId) {
     },
   }
 
-  // Відправляємо фото з описом та кнопками
   await bot.sendPhoto(chatId, product.image, {
     caption: productMessage,
     reply_markup: options.reply_markup,
@@ -228,7 +291,7 @@ async function selectColor(chatId, userId, productId, color) {
 ✅ Ви обрали:
 🎧 ${product.name}
 🎨 Колір: ${colorEmojis[color]}
-💰 Ціна: $${product.price}
+${product.price !== "Ціну уточнюйте" ? `💰 Ціна: $${product.price}` : "💰 Ціна: Уточнюйте"}
 
 Додати до кошика?
   `
@@ -260,7 +323,7 @@ async function addToCart(chatId, userId, productId, color) {
     productId,
     name: product.name,
     color,
-    price: product.price,
+    price: product.price, // Зберігаємо ціну як є (рядок або число)
   })
 
   const successMessage = `
@@ -268,7 +331,7 @@ async function addToCart(chatId, userId, productId, color) {
 
 🎧 ${product.name}
 🎨 ${colorEmojis[color]}
-💰 $${product.price}
+${product.price !== "Ціну уточнюйте" ? `💰 $${product.price}` : "💰 Ціна: Уточнюйте"}
 
 Що бажаєте зробити далі?
   `
@@ -305,16 +368,20 @@ async function showCart(chatId, userId) {
   }
 
   let cartMessage = "🛒 Ваш кошик:\n\n"
-  let total = 0
+  let total = 0 // Загальна сума, якщо всі ціни числові
 
   cart.forEach((item, index) => {
     cartMessage += `${index + 1}. ${item.name}\n`
     cartMessage += `   🎨 ${colorEmojis[item.color]}\n`
-    cartMessage += `   💰 $${item.price}\n\n`
-    total += item.price
+    cartMessage += `   💰 ${item.price !== "Ціну уточнюйте" ? `$${item.price}` : "Ціну уточнюйте"}\n\n`
+
+    // Додаємо до загальної суми, тільки якщо ціна числова
+    if (typeof item.price === "number") {
+      total += item.price
+    }
   })
 
-  cartMessage += `💳 Загальна сума: $${total}`
+  cartMessage += `💳 Загальна сума: ${total > 0 ? `$${total}` : "Уточнюйте"}`
 
   const keyboard = cart.map((item, index) => [{ text: `❌ Видалити ${item.name}`, callback_data: `remove_${index}` }])
 
@@ -358,17 +425,19 @@ async function checkout(chatId, userId) {
   cart.forEach((item, index) => {
     orderMessage += `${index + 1}. ${item.name}\n`
     orderMessage += `   🎨 ${colorEmojis[item.color]}\n`
-    orderMessage += `   💰 $${item.price}\n\n`
-    total += item.price
+    orderMessage += `   💰 ${item.price !== "Ціну уточнюйте" ? `$${item.price}` : "Ціну уточнюйте"}\n\n`
+
+    if (typeof item.price === "number") {
+      total += item.price
+    }
   })
 
-  orderMessage += `💳 Загальна сума: $${total}\n\n`
+  orderMessage += `💳 Загальна сума: ${total > 0 ? `$${total}` : "Уточнюйте"}\n\n`
   orderMessage += `📞 Для завершення замовлення, будь ласка, зв'яжіться з нами:\n`
   orderMessage += `📱 Телефон: +380123456789\n`
   orderMessage += `📧 Email: orders@headphones.com\n\n`
   orderMessage += `🆔 Номер замовлення: #${Date.now()}`
 
-  // Очищаємо кошик після оформлення
   userCarts.set(userId, [])
 
   const options = {
@@ -386,13 +455,12 @@ async function checkout(chatId, userId) {
 // Про нас
 async function showAbout(chatId) {
   const aboutMessage = `
-ℹ️ Про наш магазин
+ℹ️ Про наш магазин Soundcore
 
-🎧 Ми спеціалізуємося на продажу якісних навушників від провідних світових брендів.
+🎧 Ми спеціалізуємося на продажу якісних навушників Soundcore. Всі навушники нові, але упаковка відкрита. Гарантій немає.
 
 ✅ Наші переваги:
 • Оригінальна продукція
-• Гарантія на всі товари
 • Швидка доставка
 • Професійна підтримка
 
@@ -418,6 +486,4 @@ async function showAbout(chatId) {
   await bot.sendMessage(chatId, aboutMessage, options)
 }
 
-// Експортуємо 'app' для Vercel Serverless Functions.
-// Це дозволяє Vercel знайти ваш Express додаток.
 export default app
