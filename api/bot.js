@@ -278,7 +278,10 @@ ${product.price !== "Ціну уточнюйте" ? `💰 Ціна: $${product.p
     },
   }
 
-  await bot.sendPhoto(chatId, product.image, {
+  // Конструюємо повну URL зображення
+  const fullImageUrl = `${webhookUrl}${product.image}`
+
+  await bot.sendPhoto(chatId, fullImageUrl, {
     caption: productMessage,
     reply_markup: options.reply_markup,
   })
