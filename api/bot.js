@@ -168,6 +168,8 @@ bot.on("callback_query", async (callbackQuery) => {
   const data = callbackQuery.data
   const userId = callbackQuery.from.id
 
+  console.log("Received callback query data:", data)
+
   try {
     if (data === "catalog") {
       await showCatalog(chatId)
