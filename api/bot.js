@@ -9,19 +9,6 @@ const bot = new TelegramBot(token)
 
 app.use(express.json())
 
-// Видаляємо глобальне визначення webhookUrl звідси
-// const webhookUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "YOUR_PUBLIC_DOMAIN_OR_IP"
-
-// Цей блок залишаємо закоментованим, оскільки ви встановлюєте webhook вручну
-/*
-if (webhookUrl && token) {
-  bot.setWebHook(`${webhookUrl}/api/webhook`);
-  console.log(`Webhook встановлено на: ${webhookUrl}/api/webhook`);
-} else {
-  console.error("Webhook URL або Token не визначено. Бот може не працювати належним чином.");
-}
-*/
-
 app.post(`/api/webhook`, (req, res) => {
   bot.processUpdate(req.body)
   res.sendStatus(200)
