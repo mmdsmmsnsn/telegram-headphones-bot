@@ -1,27 +1,27 @@
+// Цей лог має з'явитися в логах Vercel, якщо файл взагалі виконується
+console.log("Bot file started! (New version)")
+
 import TelegramBot from "node-telegram-bot-api"
 import express from "express"
 
-// Отримуємо токен бота зі змінних середовища Vercel
 const token = process.env.TELEGRAM_BOT_TOKEN
 const app = express()
 const port = process.env.PORT || 3000
 
-// Створюємо екземпляр бота.
-// Для Vercel ми не використовуємо polling, а налаштовуємо webhook.
 const bot = new TelegramBot(token)
 
-// Middleware для обробки JSON запитів від Telegram.
 app.use(express.json())
 
 // Обробка webhook запитів.
-// Telegram надсилатиме оновлення на цей шлях.
 app.post(`/api/webhook`, (req, res) => {
+  console.log("Received webhook request!") // Лог для кожного вхідного webhook
   bot.processUpdate(req.body)
-  res.sendStatus(200) // Важливо завжди відповідати 200 OK
+  res.sendStatus(200)
 })
 
-// Здоров'я сервісу (для перевірки, чи працює додаток).
+// Здоров'я сервісу.
 app.get("/", (req, res) => {
+  console.log("Received root path request!") // Лог для запитів на кореневий шлях
   res.send("Telegram Bot is running!")
 })
 
