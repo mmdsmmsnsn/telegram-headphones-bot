@@ -9,14 +9,18 @@ const bot = new TelegramBot(token)
 
 app.use(express.json())
 
-const webhookUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "YOUR_PUBLIC_DOMAIN_OR_IP"
+// Видаляємо глобальне визначення webhookUrl звідси
+// const webhookUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "YOUR_PUBLIC_DOMAIN_OR_IP"
 
+// Цей блок залишаємо закоментованим, оскільки ви встановлюєте webhook вручну
+/*
 if (webhookUrl && token) {
-  // bot.setWebHook(`${webhookUrl}/api/webhook`); // Залишаємо закоментованим, встановлюємо вручну
-  console.log(`Webhook встановлено на: ${webhookUrl}/api/webhook`)
+  bot.setWebHook(`${webhookUrl}/api/webhook`);
+  console.log(`Webhook встановлено на: ${webhookUrl}/api/webhook`);
 } else {
-  console.error("Webhook URL або Token не визначено. Бот може не працювати належним чином.")
+  console.error("Webhook URL або Token не визначено. Бот може не працювати належним чином.");
 }
+*/
 
 app.post(`/api/webhook`, (req, res) => {
   bot.processUpdate(req.body)
@@ -168,7 +172,7 @@ bot.on("callback_query", async (callbackQuery) => {
   const data = callbackQuery.data
   const userId = callbackQuery.from.id
 
-  console.log("Received callback query data:", data)
+  console.log("Received callback query data:", data) // Логуємо дані callback, щоб перевірити, чи кнопки працюють
 
   try {
     if (data === "catalog") {
@@ -254,6 +258,9 @@ async function showProduct(chatId, productId, userId) {
   const product = headphones[productId]
   if (!product) return
 
+  // Отримуємо актуальний VERCEL_URL тут
+  const currentWebhookUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://example.com" // Запасний варіант для локального тестування
+
   const productMessage = `
 🎧 ${product.name}
 
@@ -279,8 +286,9 @@ ${product.price !== "Ціну уточнюйте" ? `💰 Ціна: $${product.p
   }
 
   // Конструюємо повну URL зображення
-  const fullImageUrl = `${webhookUrl}${product.image}`
-  console.log("Attempting to send image from URL:", fullImageUrl) // ДОДАНО ЛОГУВАННЯ
+  const fullImageUrl = `${currentWebhookUrl}${product.image}`
+  console.log("DEBUG: VERCEL_URL (inside showProduct):", process.env.VERCEL_URL) // Логуємо сирий VERCEL_URL
+  console.log("DEBUG: Constructed fullImageUrl (inside showProduct):", fullImageUrl) // Логуємо сформовану URL
 
   await bot.sendPhoto(chatId, fullImageUrl, {
     caption: productMessage,
