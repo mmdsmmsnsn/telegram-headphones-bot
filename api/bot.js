@@ -1,5 +1,5 @@
 // Цей лог має з'явитися в логах Vercel, якщо файл взагалі виконується
-console.log("Bot file started! (New version)")
+console.log("Bot file started! (Version with all logs)")
 
 import TelegramBot from "node-telegram-bot-api"
 import express from "express"
@@ -14,14 +14,14 @@ app.use(express.json())
 
 // Обробка webhook запитів.
 app.post(`/api/webhook`, (req, res) => {
-  console.log("Received webhook request!") // Лог для кожного вхідного webhook
+  console.log("Received webhook request on /api/webhook!") // Лог для кожного вхідного webhook
   bot.processUpdate(req.body)
   res.sendStatus(200)
 })
 
 // Здоров'я сервісу.
 app.get("/", (req, res) => {
-  console.log("Received root path request!") // Лог для запитів на кореневий шлях
+  console.log("Received root path request on /!") // Лог для запитів на кореневий шлях
   res.send("Telegram Bot is running!")
 })
 
@@ -164,6 +164,7 @@ bot.onText(/\/start/, async (msg) => {
 
 // Обробка callback запитів
 bot.on("callback_query", async (callbackQuery) => {
+  console.log("Callback query handler triggered!") // Лог, що обробник викликано
   const message = callbackQuery.message
   const chatId = message.chat.id
   const data = callbackQuery.data
