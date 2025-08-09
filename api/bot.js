@@ -280,6 +280,7 @@ ${product.price !== "Ціну уточнюйте" ? `💰 Ціна: $${product.p
 
   // Конструюємо повну URL зображення
   const fullImageUrl = `${webhookUrl}${product.image}`
+  console.log("Attempting to send image from URL:", fullImageUrl) // ДОДАНО ЛОГУВАННЯ
 
   await bot.sendPhoto(chatId, fullImageUrl, {
     caption: productMessage,
