@@ -28,7 +28,7 @@ if (webhookUrl && token) {
   console.error("Webhook URL або Token не визначено. Бот може не працювати належним чином.")
 }
 
-// Обробка webhook зап��тів.
+// Обробка webhook запитів.
 // Telegram надсилатиме оновлення на цей шлях.
 app.post(`/api/webhook`, (req, res) => {
   bot.processUpdate(req.body)
@@ -92,25 +92,8 @@ const userCarts = new Map()
 // Команда /start
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id
-  const welcomeMessage = `
-🎧 Ласкаво просимо до магазину навушників!
-
-Тут ви можете придбати найкращі навушники від провідних брендів.
-
-Оберіть дію:
-  `
-
-  const options = {
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: "🛍️ Переглянути каталог", callback_data: "catalog" }],
-        [{ text: "🛒 Мій кошик", callback_data: "cart" }],
-        [{ text: "ℹ️ Про нас", callback_data: "about" }],
-      ],
-    },
-  }
-
-  await bot.sendMessage(chatId, welcomeMessage, options)
+  // Змінено: дуже просте повідомлення без кнопок
+  await bot.sendMessage(chatId, "Привіт! Бот працює. Спробую відповісти на /start.")
 })
 
 // Обробка callback запитів
