@@ -1,12 +1,16 @@
 // Цей лог має з'явитися в логах Vercel, якщо файл взагалі виконується
-console.log("Bot file started! (Version with multiple images support)")
+console.log("DEBUG: Bot file execution started at top of file!")
 
 import TelegramBot from "node-telegram-bot-api"
 import express from "express"
 
+console.log("DEBUG: Imports completed.")
+
 const token = process.env.TELEGRAM_BOT_TOKEN
 const app = express()
 const port = process.env.PORT || 3000
+
+console.log("DEBUG: Variables initialized. Token present:", !!token) // Перевіряємо, чи токен існує
 
 const bot = new TelegramBot(token)
 
@@ -124,7 +128,7 @@ const headphones = {
       "/images/soundcore_space_one_pro_2.jpg",
       "/images/soundcore_space_one_pro_3.jpg",
     ],
-    description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
+    description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
   soundcore_liberty_4_pro: {
     name: "Soundcore Liberty 4 Pro",
@@ -708,34 +712,14 @@ async function finalizeOrder(chatId, userId, orderData) {
   }
 }
 
-// Про нас
+// Показати інформацію про нас
 async function showAbout(chatId) {
-  const aboutMessage = `
-ℹ️ Про наш магазин Soundcore
-
-🎧 Ми спеціалізуємося на продажу якісних навушників Soundcore. Всі навушники нові, але упаковка відкрита. Гарантій немає.
-
-✅ Наші переваги:
-• Оригінальна продукція
-• Швидка доставка
-• Професійна підтримка
-
-📞 Контакти:
-• Телефон: +380123456789
-• Email: info@headphones.com
-• Адреса: м. Київ, вул. Музична, 1
-
-🕒 Режим роботи:
-Пн-Пт: 9:00-18:00
-Сб-Нд: 10:00-16:00
-  `
+  const aboutMessage =
+    "ℹ️ Про нас:\n\nМи - магазин навушників Soundcore. Всі наші товари нові, але упаковка відкрита. Гарантій немає."
 
   const options = {
     reply_markup: {
-      inline_keyboard: [
-        [{ text: "🛍️ Перейти до каталогу", callback_data: "catalog" }],
-        [{ text: "🏠 Головне меню", callback_data: "back_to_main" }],
-      ],
+      inline_keyboard: [[{ text: "🏠 Головне меню", callback_data: "back_to_main" }]],
     },
   }
 
@@ -746,4 +730,6 @@ async function showAbout(chatId) {
   }
 }
 
+// Експортуємо 'app' для Vercel Serverless Functions.
+// Це дозволяє Vercel знайти ваш Express додаток.
 export default app
