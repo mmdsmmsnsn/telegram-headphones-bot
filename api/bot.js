@@ -159,7 +159,11 @@ bot.onText(/\/start/, async (msg) => {
     },
   }
 
-  await bot.sendMessage(chatId, welcomeMessage, options)
+  try {
+    await bot.sendMessage(chatId, welcomeMessage, options)
+  } catch (error) {
+    console.error("Error sending /start message:", error)
+  }
 })
 
 // Обробка callback запитів
@@ -226,7 +230,11 @@ async function showMainMenu(chatId) {
     },
   }
 
-  await bot.sendMessage(chatId, welcomeMessage, options)
+  try {
+    await bot.sendMessage(chatId, welcomeMessage, options)
+  } catch (error) {
+    console.error("Error sending main menu message:", error)
+  }
 }
 
 // Показати каталог
@@ -248,7 +256,11 @@ async function showCatalog(chatId) {
     },
   }
 
-  await bot.sendMessage(chatId, catalogMessage, options)
+  try {
+    await bot.sendMessage(chatId, catalogMessage, options)
+  } catch (error) {
+    console.error("Error sending catalog message:", error)
+  }
 }
 
 // Показати продукт
@@ -288,10 +300,20 @@ ${product.price !== "Ціну уточнюйте" ? `💰 Ціна: $${product.p
   console.log("DEBUG: VERCEL_URL (inside showProduct):", process.env.VERCEL_URL) // Логуємо сирий VERCEL_URL
   console.log("DEBUG: Constructed fullImageUrl (inside showProduct):", fullImageUrl) // Логуємо сформовану URL
 
-  await bot.sendPhoto(chatId, fullImageUrl, {
-    caption: productMessage,
-    reply_markup: options.reply_markup,
-  })
+  try {
+    await bot.sendPhoto(chatId, fullImageUrl, {
+      caption: productMessage,
+      reply_markup: options.reply_markup,
+    })
+  } catch (error) {
+    console.error("Error sending product photo:", error)
+    // Запасний варіант: відправити текстове повідомлення, якщо фото не вдалося
+    try {
+      await bot.sendMessage(chatId, `Помилка завантаження фото. ${productMessage}`, options)
+    } catch (fallbackError) {
+      console.error("Error sending fallback message:", fallbackError)
+    }
+  }
 }
 
 // Вибір кольору
@@ -318,7 +340,11 @@ ${product.price !== "Ціну уточнюйте" ? `💰 Ціна: $${product.p
     },
   }
 
-  await bot.sendMessage(chatId, confirmMessage, options)
+  try {
+    await bot.sendMessage(chatId, confirmMessage, options)
+  } catch (error) {
+    console.error("Error sending color selection message:", error)
+  }
 }
 
 // Додати до кошика
@@ -358,7 +384,11 @@ ${product.price !== "Ціну уточнюйте" ? `💰 $${product.price}` : "
     },
   }
 
-  await bot.sendMessage(chatId, successMessage, options)
+  try {
+    await bot.sendMessage(chatId, successMessage, options)
+  } catch (error) {
+    console.error("Error sending add to cart message:", error)
+  }
 }
 
 // Показати кошик
@@ -375,7 +405,11 @@ async function showCart(chatId, userId) {
         ],
       },
     }
-    await bot.sendMessage(chatId, emptyMessage, options)
+    try {
+      await bot.sendMessage(chatId, emptyMessage, options)
+    } catch (error) {
+      console.error("Error sending empty cart message:", error)
+    }
     return
   }
 
@@ -408,7 +442,11 @@ async function showCart(chatId, userId) {
     },
   }
 
-  await bot.sendMessage(chatId, cartMessage, options)
+  try {
+    await bot.sendMessage(chatId, cartMessage, options)
+  } catch (error) {
+    console.error("Error sending cart message:", error)
+  }
 }
 
 // Видалити з кошика
@@ -417,8 +455,12 @@ async function removeFromCart(chatId, userId, itemIndex) {
 
   if (itemIndex >= 0 && itemIndex < cart.length) {
     const removedItem = cart.splice(itemIndex, 1)[0]
-    await bot.sendMessage(chatId, `✅ ${removedItem.name} видалено з кошика`)
-    await showCart(chatId, userId) // Оновлюємо кошик після видалення
+    try {
+      await bot.sendMessage(chatId, `✅ ${removedItem.name} видалено з кошика`)
+      await showCart(chatId, userId) // Оновлюємо кошик після видалення
+    } catch (error) {
+      console.error("Error removing from cart or showing updated cart:", error)
+    }
   }
 }
 
@@ -427,7 +469,11 @@ async function checkout(chatId, userId) {
   const cart = userCarts.get(userId) || []
 
   if (cart.length === 0) {
-    await bot.sendMessage(chatId, "❌ Кошик порожній")
+    try {
+      await bot.sendMessage(chatId, "❌ Кошик порожній")
+    } catch (error) {
+      console.error("Error sending empty cart message during checkout:", error)
+    }
     return
   }
 
@@ -461,7 +507,11 @@ async function checkout(chatId, userId) {
     },
   }
 
-  await bot.sendMessage(chatId, orderMessage, options)
+  try {
+    await bot.sendMessage(chatId, orderMessage, options)
+  } catch (error) {
+    console.error("Error sending checkout message:", error)
+  }
 }
 
 // Про нас
@@ -495,7 +545,11 @@ async function showAbout(chatId) {
     },
   }
 
-  await bot.sendMessage(chatId, aboutMessage, options)
+  try {
+    await bot.sendMessage(chatId, aboutMessage, options)
+  } catch (error) {
+    console.error("Error sending about message:", error)
+  }
 }
 
 export default app
