@@ -1,7 +1,9 @@
 // Цей лог має з'явитися в логах Vercel, якщо файл взагалі виконується
 console.log("DEBUG: Bot file execution started at top of file!")
+
 import TelegramBot from "node-telegram-bot-api"
 import express from "express"
+
 console.log("DEBUG: Imports completed.")
 
 const token = process.env.TELEGRAM_BOT_TOKEN
@@ -189,12 +191,14 @@ bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id
   // Очищаємо стан користувача при старті
   userStates.delete(chatId)
-  const welcomeMessage = `🎧 Ласкаво просимо до магазину навушників Soundcore!
+  const welcomeMessage = `
+🎧 Ласкаво просимо до магазину навушників Soundcore!
 
 Всі навушники нові, але упаковка відкрита. Гарантій немає.
 
 Оберіть дію:
   `
+
   const options = {
     reply_markup: {
       inline_keyboard: [
@@ -204,6 +208,7 @@ bot.onText(/\/start/, async (msg) => {
       ],
     },
   }
+
   try {
     await bot.sendMessage(chatId, welcomeMessage, options)
   } catch (error) {
@@ -221,6 +226,7 @@ bot.on("callback_query", async (callbackQuery) => {
 
   await bot.answerCallbackQuery(callbackQuery.id) // Відповідаємо негайно
   console.log("DEBUG: Answered callback query:", callbackQuery.id) // Додаємо лог для підтвердження
+
   console.log("Received callback query data:", data)
 
   try {
@@ -243,7 +249,7 @@ bot.on("callback_query", async (callbackQuery) => {
       await showProduct(chatId, productId, userId)
     } else if (data.startsWith("color_")) {
       const [, productId, color] = data.split("_")
-      await addToCart(chatId, userId, productId, color) // ЗМІНА: одразу додаємо в кошик
+      await selectColor(chatId, userId, productId, color)
     } else if (data.startsWith("add_to_cart_")) {
       const [, , , productId, color] = data.split("_")
       await addToCart(chatId, userId, productId, color)
@@ -259,6 +265,7 @@ bot.on("callback_query", async (callbackQuery) => {
     } else if (data === "cancel_order") {
       await cancelOrder(chatId)
     }
+
     // await bot.answerCallbackQuery(callbackQuery.id)
   } catch (error) {
     console.error("Error handling callback:", error)
@@ -290,6 +297,7 @@ bot.on("message", async (msg) => {
   }
 
   const currentState = userStates.get(chatId)
+
   if (currentState) {
     try {
       switch (currentState.step) {
@@ -358,12 +366,14 @@ bot.on("message", async (msg) => {
 
 // Показати головне меню
 async function showMainMenu(chatId) {
-  const welcomeMessage = `🎧 Ласкаво просимо до магазину навушників Soundcore!
+  const welcomeMessage = `
+🎧 Ласкаво просимо до магазину навушників Soundcore!
 
 Всі навушники нові, але упаковка відкрита. Гарантій немає.
 
 Оберіть дію:
   `
+
   const options = {
     reply_markup: {
       inline_keyboard: [
@@ -373,6 +383,7 @@ async function showMainMenu(chatId) {
       ],
     },
   }
+
   try {
     await bot.sendMessage(chatId, welcomeMessage, options)
   } catch (error) {
@@ -383,12 +394,14 @@ async function showMainMenu(chatId) {
 // Показати каталог
 async function showCatalog(chatId) {
   const catalogMessage = "🎧 Каталог навушників Soundcore:\n\nОберіть модель для детального перегляду:"
+
   const keyboard = Object.keys(headphones).map((productId) => [
     {
       text: `${headphones[productId].name} ${typeof headphones[productId].price === "number" ? `- $${headphones[productId].price}` : ""}`,
       callback_data: `product_${productId}`,
     },
   ])
+
   keyboard.push([{ text: "🏠 Головне меню", callback_data: "back_to_main" }])
 
   const options = {
@@ -396,6 +409,7 @@ async function showCatalog(chatId) {
       inline_keyboard: keyboard,
     },
   }
+
   try {
     await bot.sendMessage(chatId, catalogMessage, options)
   } catch (error) {
@@ -410,10 +424,10 @@ async function showProduct(chatId, productId, userId) {
 
   const currentWebhookUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://example.com"
 
-  const productMessage = `🎧 ${product.name}
+  const productMessage = `
+🎧 ${product.name}
 
 ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰 Ціна: Уточнюйте"}
-
 📝 ${product.description}
 
 🎨 Доступні кольори:
@@ -425,6 +439,7 @@ ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰
       callback_data: `color_${productId}_${color}`,
     },
   ])
+
   colorKeyboard.push([{ text: "⬅️ Назад до каталогу", callback_data: "back_to_catalog" }])
 
   const options = {
@@ -465,8 +480,8 @@ async function selectColor(chatId, userId, productId, color) {
   const product = headphones[productId]
   if (!product) return
 
-  const confirmMessage = `✅ Ви обрали:
-
+  const confirmMessage = `
+✅ Ви обрали:
 🎧 ${product.name}
 🎨 Колір: ${colorEmojis[color]}
 ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰 Ціна: Уточнюйте"}
@@ -508,7 +523,8 @@ async function addToCart(chatId, userId, productId, color) {
     price: product.price, // Зберігаємо ціну як є (рядок або число)
   })
 
-  const successMessage = `✅ Товар додано до кошика!
+  const successMessage = `
+✅ Товар додано до кошика!
 
 🎧 ${product.name}
 🎨 ${colorEmojis[color]}
@@ -573,6 +589,7 @@ async function showCart(chatId, userId) {
   cartMessage += `💳 Загальна сума: ${total > 0 ? `$${total}` : "Уточнюйте"}`
 
   const keyboard = cart.map((item, index) => [{ text: `❌ Видалити ${item.name}`, callback_data: `remove_${index}` }])
+
   keyboard.push(
     [{ text: "💳 Оформити замовлення", callback_data: "checkout" }],
     [{ text: "🛍️ Продовжити покупки", callback_data: "catalog" }],
@@ -620,7 +637,6 @@ async function startCheckout(chatId, userId) {
   }
 
   userStates.set(chatId, { step: "awaiting_name", orderData: { cart: cart } })
-
   try {
     await bot.sendMessage(chatId, "Будь ласка, введіть ваше повне ім'я (ПІБ):", {
       reply_markup: {
@@ -663,7 +679,6 @@ async function finalizeOrder(chatId, userId, orderData) {
     orderSummary += `${index + 1}. ${item.name}\n`
     orderSummary += `   🎨 ${colorEmojis[item.color]}\n`
     orderSummary += `   💰 ${typeof item.price === "number" ? `$${item.price}` : "Ціну уточнюйте"}\n\n`
-
     if (typeof item.price === "number") {
       total += item.price
     }
