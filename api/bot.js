@@ -1,9 +1,7 @@
 // Цей лог має з'явитися в логах Vercel, якщо файл взагалі виконується
 console.log("DEBUG: Bot file execution started at top of file!")
-
 import TelegramBot from "node-telegram-bot-api"
 import express from "express"
-
 console.log("DEBUG: Imports completed.")
 
 const token = process.env.TELEGRAM_BOT_TOKEN
@@ -36,10 +34,9 @@ const headphones = {
     price: 79,
     colors: ["black", "pink"],
     images: [
-      // Змінено на масив зображень
-      "/images/soundcore_p30i_1.jpg",
-      "/images/soundcore_p30i_2.jpg",
-      "/images/soundcore_p30i_3.jpg",
+      "https://drive.google.com/uc?export=view&id=1ulNKKqbAe9IvM185MYoNweLwuvorZX8J",
+      "https://drive.google.com/uc?export=view&id=1Wzz-TOUjfz0NxFqm4rC_EpbKGtWAmq48",
+      "https://drive.google.com/uc?export=view&id=1dO1nqZj24ryFJZrZIDQDw4GAqKU1_hDP"
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -48,9 +45,9 @@ const headphones = {
     price: 129,
     colors: ["black"],
     images: [
-      "/images/soundcore_liberty_4_1.jpg",
-      "/images/soundcore_liberty_4_2.jpg",
-      "/images/soundcore_liberty_4_3.jpg",
+      "https://drive.google.com/uc?export=view&id=1jriC7SBav8GKG-3BLncV19khFRFNrQnG",
+      "https://drive.google.com/uc?export=view&id=1KLWiwmWPv4mnLskY6VxNgRyOJ_PH3LiV",
+      "https://drive.google.com/uc?export=view&id=1kpxsc7X1NHZjPWOClWxVNN9hUkiAhIpc"
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -59,9 +56,9 @@ const headphones = {
     price: 99,
     colors: ["black", "white"],
     images: [
-      "/images/soundcore_liberty_3_pro_1.jpg",
-      "/images/soundcore_liberty_3_pro_2.jpg",
-      "/images/soundcore_liberty_3_pro_3.jpg",
+      "https://drive.google.com/uc?export=view&id=17E94EA47ejSCPGMeN984tYIj2IDfyQZm",
+      "https://drive.google.com/uc?export=view&id=13S-B0U8F_zfKy5F71Kl3x39Blk-tFHiE",
+      "https://drive.google.com/uc?export=view&id=1rNTn6jofBn023CsZYWnV-BelhechdKJH"
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -70,9 +67,9 @@ const headphones = {
     price: 119,
     colors: ["black", "white", "dark_blue"],
     images: [
-      "/images/soundcore_space_a40_1.jpg",
-      "/images/soundcore_space_a40_2.jpg",
-      "/images/soundcore_space_a40_3.jpg",
+      "https://drive.google.com/uc?export=view&id=1VQNCqU5v7urscd_O5PHlbJgOyfHX-7QR",
+      "https://drive.google.com/uc?export=view&id=1xVWtDwrJ5GlDWN9dWvEa3T6WgeIfqQfg",
+      "https://drive.google.com/uc?export=view&id=1RObWeXAdaXaOEOFhplXFgfbLNbhCZHdi"
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -80,7 +77,11 @@ const headphones = {
     name: "Soundcore AeroFit",
     price: 139,
     colors: ["black", "pink"],
-    images: ["/images/soundcore_aerofit_1.jpg", "/images/soundcore_aerofit_2.jpg", "/images/soundcore_aerofit_3.jpg"],
+    images: [
+      "https://drive.google.com/uc?export=view&id=1GsLbqNyKAQ4GuxpVga6KTMs4uDiJwYGB",
+      "https://drive.google.com/uc?export=view&id=1rj1Hy5IP4Ex1pdETxnPpI0umohVuGfQi",
+      "https://drive.google.com/uc?export=view&id=1HM0Vom8g00X1R02jZ9CH67rSBMkYLrrQ"
+    ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_a20_sleep: {
@@ -88,9 +89,9 @@ const headphones = {
     price: 149,
     colors: ["white"],
     images: [
-      "/images/soundcore_a20_sleep_1.jpg",
-      "/images/soundcore_a20_sleep_2.jpg",
-      "/images/soundcore_a20_sleep_3.jpg",
+      "https://drive.google.com/uc?export=view&id=1a7Kdk5U8c_qjo_GIp4kWPsvUoRLJ9CfU",
+      "https://drive.google.com/uc?export=view&id=1WhfuHprES8qcriae9abwgwu_Avu7RGya",
+      "https://drive.google.com/uc?export=view&id=1n6GcFe7F6vXRTo-qxrZV-koirQPLIbut"
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -98,14 +99,22 @@ const headphones = {
     name: "Soundcore TUNE",
     price: 59,
     colors: ["black"],
-    images: ["/images/soundcore_tune_1.jpg", "/images/soundcore_tune_2.jpg", "/images/soundcore_tune_3.jpg"],
+    images: [
+      "https://drive.google.com/uc?export=view&id=1nnufI_l5jz1t141qRfvCeOZx9LRDCvLX",
+      "https://drive.google.com/uc?export=view&id=1y6JVXI9T_35lG-5WZBJ5cU7uKuNPu3th",
+      "https://drive.google.com/uc?export=view&id=1JcYtKHg0mzJyniC2rTe0Gu0kMHo_Yd9x"
+    ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_q21i_nc: {
     name: "Soundcore Q21i NC",
     price: 69,
     colors: ["black"],
-    images: ["/images/soundcore_q21i_nc_1.jpg", "/images/soundcore_q21i_nc_2.jpg", "/images/soundcore_q21i_nc_3.jpg"],
+    images: [
+      "https://drive.google.com/uc?export=view&id=1tIvZKyfe9k7BarS-R19lOPgLmNMFUCdQ",
+      "https://drive.google.com/uc?export=view&id=16cX3ZBDR-lRxJoR4swRhVzzulg_v1hzq",
+      "https://drive.google.com/uc?export=view&id=1q8MMwhsl78rRwUThkS9HmQUDn9ilpSZV"
+    ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_space_one: {
@@ -113,9 +122,9 @@ const headphones = {
     price: 109,
     colors: ["black", "light_blue"],
     images: [
-      "/images/soundcore_space_one_1.jpg",
-      "/images/soundcore_space_one_2.jpg",
-      "/images/soundcore_space_one_3.jpg",
+      "https://drive.google.com/uc?export=view&id=13XSCKWq6Bb2neKDIPkzKcEntTtqvTmBN",
+      "https://drive.google.com/uc?export=view&id=1hA_ElSi34-mo4c6SWwAUYGX1QvRGMmmv",
+      "https://drive.google.com/uc?export=view&id=17WMlAe1JEqsQGjrZWQnKdnw90coDs5i-"
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -124,9 +133,9 @@ const headphones = {
     price: 159,
     colors: ["black", "cream"],
     images: [
-      "/images/soundcore_space_one_pro_1.jpg",
-      "/images/soundcore_space_one_pro_2.jpg",
-      "/images/soundcore_space_one_pro_3.jpg",
+      "https://drive.google.com/uc?export=view&id=1CxVBCzk4mthOCaa-N4Nv58YhgjVoMQE2",
+      "https://drive.google.com/uc?export=view&id=1Rnbn7hZmKs_WToRIrl56eT8HsjTjJx2v",
+      "https://drive.google.com/uc?export=view&id=1yjWS4a8TDRS14pSGtjDgxWu93hPQ642N"
     ],
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
@@ -135,9 +144,9 @@ const headphones = {
     price: 179,
     colors: ["black"],
     images: [
-      "/images/soundcore_liberty_4_pro_1.jpg",
-      "/images/soundcore_liberty_4_pro_2.jpg",
-      "/images/soundcore_liberty_4_pro_3.jpg",
+      "https://drive.google.com/uc?export=view&id=1qaVI_a9wrKXtEg1B7IpVXc7Erdt74Um9",
+      "https://drive.google.com/uc?export=view&id=17KQhzQlsqGUT4mrpC5AAfJsq23xccD9a",
+      "https://drive.google.com/uc?export=view&id=12g5o9OnYgs2vxeEdobV2JNdUR8ilmBDL"
     ],
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
@@ -146,9 +155,9 @@ const headphones = {
     price: 139,
     colors: ["black", "white", "blue"],
     images: [
-      "/images/soundcore_liberty_4_nc_1.jpg",
-      "/images/soundcore_liberty_4_nc_2.jpg",
-      "/images/soundcore_liberty_4_nc_3.jpg",
+      "https://drive.google.com/uc?export=view&id=1tUbTWpmiW47R0-xFdMsS4OrO6I5xL3gZ",
+      "https://drive.google.com/uc?export=view&id=1DcdOs6VKt2oMevY7u7k-5bDyoM4rqNZu",
+      "https://drive.google.com/uc?export=view&id=1iUUfDv1eqFS3pKrgcWRLOSpaXQBFUbCt"
     ],
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
@@ -157,9 +166,9 @@ const headphones = {
     price: 189,
     colors: ["black", "blue"],
     images: [
-      "/images/soundcore_aerofit_pro_1.jpg",
-      "/images/soundcore_aerofit_pro_2.jpg",
-      "/images/soundcore_aerofit_pro_3.jpg",
+      "https://drive.google.com/uc?export=view&id=1D4HyaKgsUek7CqHE8z8dgF2hiRlPPMBU",
+      "https://drive.google.com/uc?export=view&id=1qaVI_a9wrKXtEg1B7IpVXc7Erdt74Um9",
+      "https://drive.google.com/uc?export=view&id=17KQhzQlsqGUT4mrpC5AAfJsq23xccD9a"
     ],
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
@@ -191,14 +200,12 @@ bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id
   // Очищаємо стан користувача при старті
   userStates.delete(chatId)
-  const welcomeMessage = `
-🎧 Ласкаво просимо до магазину навушників Soundcore!
+  const welcomeMessage = `🎧 Ласкаво просимо до магазину навушників Soundcore!
 
 Всі навушники нові, але упаковка відкрита. Гарантій немає.
 
 Оберіть дію:
   `
-
   const options = {
     reply_markup: {
       inline_keyboard: [
@@ -208,7 +215,6 @@ bot.onText(/\/start/, async (msg) => {
       ],
     },
   }
-
   try {
     await bot.sendMessage(chatId, welcomeMessage, options)
   } catch (error) {
@@ -226,7 +232,6 @@ bot.on("callback_query", async (callbackQuery) => {
 
   await bot.answerCallbackQuery(callbackQuery.id) // Відповідаємо негайно
   console.log("DEBUG: Answered callback query:", callbackQuery.id) // Додаємо лог для підтвердження
-
   console.log("Received callback query data:", data)
 
   try {
@@ -265,7 +270,6 @@ bot.on("callback_query", async (callbackQuery) => {
     } else if (data === "cancel_order") {
       await cancelOrder(chatId)
     }
-
     // await bot.answerCallbackQuery(callbackQuery.id)
   } catch (error) {
     console.error("Error handling callback:", error)
@@ -297,7 +301,6 @@ bot.on("message", async (msg) => {
   }
 
   const currentState = userStates.get(chatId)
-
   if (currentState) {
     try {
       switch (currentState.step) {
@@ -366,14 +369,12 @@ bot.on("message", async (msg) => {
 
 // Показати головне меню
 async function showMainMenu(chatId) {
-  const welcomeMessage = `
-🎧 Ласкаво просимо до магазину навушників Soundcore!
+  const welcomeMessage = `🎧 Ласкаво просимо до магазину навушників Soundcore!
 
 Всі навушники нові, але упаковка відкрита. Гарантій немає.
 
 Оберіть дію:
   `
-
   const options = {
     reply_markup: {
       inline_keyboard: [
@@ -383,7 +384,6 @@ async function showMainMenu(chatId) {
       ],
     },
   }
-
   try {
     await bot.sendMessage(chatId, welcomeMessage, options)
   } catch (error) {
@@ -394,14 +394,12 @@ async function showMainMenu(chatId) {
 // Показати каталог
 async function showCatalog(chatId) {
   const catalogMessage = "🎧 Каталог навушників Soundcore:\n\nОберіть модель для детального перегляду:"
-
   const keyboard = Object.keys(headphones).map((productId) => [
     {
       text: `${headphones[productId].name} ${typeof headphones[productId].price === "number" ? `- $${headphones[productId].price}` : ""}`,
       callback_data: `product_${productId}`,
     },
   ])
-
   keyboard.push([{ text: "🏠 Головне меню", callback_data: "back_to_main" }])
 
   const options = {
@@ -409,7 +407,6 @@ async function showCatalog(chatId) {
       inline_keyboard: keyboard,
     },
   }
-
   try {
     await bot.sendMessage(chatId, catalogMessage, options)
   } catch (error) {
@@ -424,10 +421,10 @@ async function showProduct(chatId, productId, userId) {
 
   const currentWebhookUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://example.com"
 
-  const productMessage = `
-🎧 ${product.name}
+  const productMessage = `🎧 ${product.name}
 
 ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰 Ціна: Уточнюйте"}
+
 📝 ${product.description}
 
 🎨 Доступні кольори:
@@ -439,7 +436,6 @@ ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰
       callback_data: `color_${productId}_${color}`,
     },
   ])
-
   colorKeyboard.push([{ text: "⬅️ Назад до каталогу", callback_data: "back_to_catalog" }])
 
   const options = {
@@ -452,7 +448,7 @@ ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰
     if (Array.isArray(product.images) && product.images.length > 0) {
       const media = product.images.map((imgPath, index) => ({
         type: "photo",
-        media: `${currentWebhookUrl}${imgPath}`,
+        media: imgPath,
         caption: index === 0 ? productMessage : undefined, // Опис тільки для першого фото в альбомі
       }))
       await bot.sendMediaGroup(chatId, media, { reply_markup: options.reply_markup })
@@ -480,8 +476,8 @@ async function selectColor(chatId, userId, productId, color) {
   const product = headphones[productId]
   if (!product) return
 
-  const confirmMessage = `
-✅ Ви обрали:
+  const confirmMessage = `✅ Ви обрали:
+
 🎧 ${product.name}
 🎨 Колір: ${colorEmojis[color]}
 ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰 Ціна: Уточнюйте"}
@@ -523,8 +519,7 @@ async function addToCart(chatId, userId, productId, color) {
     price: product.price, // Зберігаємо ціну як є (рядок або число)
   })
 
-  const successMessage = `
-✅ Товар додано до кошика!
+  const successMessage = `✅ Товар додано до кошика!
 
 🎧 ${product.name}
 🎨 ${colorEmojis[color]}
@@ -589,7 +584,6 @@ async function showCart(chatId, userId) {
   cartMessage += `💳 Загальна сума: ${total > 0 ? `$${total}` : "Уточнюйте"}`
 
   const keyboard = cart.map((item, index) => [{ text: `❌ Видалити ${item.name}`, callback_data: `remove_${index}` }])
-
   keyboard.push(
     [{ text: "💳 Оформити замовлення", callback_data: "checkout" }],
     [{ text: "🛍️ Продовжити покупки", callback_data: "catalog" }],
@@ -637,6 +631,7 @@ async function startCheckout(chatId, userId) {
   }
 
   userStates.set(chatId, { step: "awaiting_name", orderData: { cart: cart } })
+
   try {
     await bot.sendMessage(chatId, "Будь ласка, введіть ваше повне ім'я (ПІБ):", {
       reply_markup: {
@@ -679,6 +674,7 @@ async function finalizeOrder(chatId, userId, orderData) {
     orderSummary += `${index + 1}. ${item.name}\n`
     orderSummary += `   🎨 ${colorEmojis[item.color]}\n`
     orderSummary += `   💰 ${typeof item.price === "number" ? `$${item.price}` : "Ціну уточнюйте"}\n\n`
+
     if (typeof item.price === "number") {
       total += item.price
     }
