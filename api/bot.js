@@ -34,9 +34,10 @@ const headphones = {
     price: 79,
     colors: ["black", "pink"],
     images: [
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+P30i+1",
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+P30i+2",
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+P30i+3"
+      // Змінено на масив зображень
+      "/images/soundcore_p30i_1.jpg",
+      "/images/soundcore_p30i_2.jpg",
+      "/images/soundcore_p30i_3.jpg",
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -45,9 +46,9 @@ const headphones = {
     price: 129,
     colors: ["black"],
     images: [
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+4+1",
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+4+2",
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+4+3"
+      "/images/soundcore_liberty_4_1.jpg",
+      "/images/soundcore_liberty_4_2.jpg",
+      "/images/soundcore_liberty_4_3.jpg",
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -56,9 +57,9 @@ const headphones = {
     price: 99,
     colors: ["black", "white"],
     images: [
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+3+Pro+1",
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+3+Pro+2",
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+3+Pro+3"
+      "/images/soundcore_liberty_3_pro_1.jpg",
+      "/images/soundcore_liberty_3_pro_2.jpg",
+      "/images/soundcore_liberty_3_pro_3.jpg",
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -67,9 +68,9 @@ const headphones = {
     price: 119,
     colors: ["black", "white", "dark_blue"],
     images: [
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Space+A40+1",
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Space+A40+2",
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Space+A40+3"
+      "/images/soundcore_space_a40_1.jpg",
+      "/images/soundcore_space_a40_2.jpg",
+      "/images/soundcore_space_a40_3.jpg",
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -77,11 +78,7 @@ const headphones = {
     name: "Soundcore AeroFit",
     price: 139,
     colors: ["black", "pink"],
-    images: [
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+AeroFit+1",
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+AeroFit+2",
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+AeroFit+3"
-    ],
+    images: ["/images/soundcore_aerofit_1.jpg", "/images/soundcore_aerofit_2.jpg", "/images/soundcore_aerofit_3.jpg"],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_a20_sleep: {
@@ -89,9 +86,9 @@ const headphones = {
     price: 149,
     colors: ["white"],
     images: [
-      "https://via.placeholder.com/400x300/FFFFFF/000000?text=Soundcore+A20+Sleep+1",
-      "https://via.placeholder.com/400x300/FFFFFF/000000?text=Soundcore+A20+Sleep+2",
-      "https://via.placeholder.com/400x300/FFFFFF/000000?text=Soundcore+A20+Sleep+3"
+      "/images/soundcore_a20_sleep_1.jpg",
+      "/images/soundcore_a20_sleep_2.jpg",
+      "/images/soundcore_a20_sleep_3.jpg",
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -99,22 +96,14 @@ const headphones = {
     name: "Soundcore TUNE",
     price: 59,
     colors: ["black"],
-    images: [
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+TUNE+1",
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+TUNE+2",
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+TUNE+3"
-    ],
+    images: ["/images/soundcore_tune_1.jpg", "/images/soundcore_tune_2.jpg", "/images/soundcore_tune_3.jpg"],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_q21i_nc: {
     name: "Soundcore Q21i NC",
     price: 69,
     colors: ["black"],
-    images: [
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Q21i+NC+1",
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Q21i+NC+2",
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Q21i+NC+3"
-    ],
+    images: ["/images/soundcore_q21i_nc_1.jpg", "/images/soundcore_q21i_nc_2.jpg", "/images/soundcore_q21i_nc_3.jpg"],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_space_one: {
@@ -122,9 +111,9 @@ const headphones = {
     price: 109,
     colors: ["black", "light_blue"],
     images: [
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Space+One+1",
-      "https://via.placeholder.com/400x300/87CEEB/000000?text=Soundcore+Space+One+2",
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Space+One+3"
+      "/images/soundcore_space_one_1.jpg",
+      "/images/soundcore_space_one_2.jpg",
+      "/images/soundcore_space_one_3.jpg",
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -133,9 +122,9 @@ const headphones = {
     price: 159,
     colors: ["black", "cream"],
     images: [
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Space+One+Pro+1",
-      "https://via.placeholder.com/400x300/F5F5DC/000000?text=Soundcore+Space+One+Pro+2",
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Space+One+Pro+3"
+      "/images/soundcore_space_one_pro_1.jpg",
+      "/images/soundcore_space_one_pro_2.jpg",
+      "/images/soundcore_space_one_pro_3.jpg",
     ],
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
@@ -144,9 +133,9 @@ const headphones = {
     price: 179,
     colors: ["black"],
     images: [
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+4+Pro+1",
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+4+Pro+2",
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+4+Pro+3"
+      "/images/soundcore_liberty_4_pro_1.jpg",
+      "/images/soundcore_liberty_4_pro_2.jpg",
+      "/images/soundcore_liberty_4_pro_3.jpg",
     ],
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
@@ -155,9 +144,9 @@ const headphones = {
     price: 139,
     colors: ["black", "white", "blue"],
     images: [
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+4+NC+1",
-      "https://via.placeholder.com/400x300/FFFFFF/000000?text=Soundcore+Liberty+4+NC+2",
-      "https://via.placeholder.com/400x300/0000FF/FFFFFF?text=Soundcore+Liberty+4+NC+3"
+      "/images/soundcore_liberty_4_nc_1.jpg",
+      "/images/soundcore_liberty_4_nc_2.jpg",
+      "/images/soundcore_liberty_4_nc_3.jpg",
     ],
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
@@ -166,9 +155,9 @@ const headphones = {
     price: 189,
     colors: ["black", "blue"],
     images: [
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+AeroFit+Pro+1",
-      "https://via.placeholder.com/400x300/0000FF/FFFFFF?text=Soundcore+AeroFit+Pro+2",
-      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+AeroFit+Pro+3"
+      "/images/soundcore_aerofit_pro_1.jpg",
+      "/images/soundcore_aerofit_pro_2.jpg",
+      "/images/soundcore_aerofit_pro_3.jpg",
     ],
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
@@ -254,7 +243,7 @@ bot.on("callback_query", async (callbackQuery) => {
       await showProduct(chatId, productId, userId)
     } else if (data.startsWith("color_")) {
       const [, productId, color] = data.split("_")
-      await addToCart(chatId, userId, productId, color) // Одразу додаємо в кошик
+      await addToCart(chatId, userId, productId, color) // ЗМІНА: одразу додаємо в кошик
     } else if (data.startsWith("add_to_cart_")) {
       const [, , , productId, color] = data.split("_")
       await addToCart(chatId, userId, productId, color)
@@ -448,7 +437,7 @@ ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰
     if (Array.isArray(product.images) && product.images.length > 0) {
       const media = product.images.map((imgPath, index) => ({
         type: "photo",
-        media: imgPath,
+        media: `${currentWebhookUrl}${imgPath}`,
         caption: index === 0 ? productMessage : undefined, // Опис тільки для першого фото в альбомі
       }))
       await bot.sendMediaGroup(chatId, media, { reply_markup: options.reply_markup })
