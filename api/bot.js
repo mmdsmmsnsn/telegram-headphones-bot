@@ -1,5 +1,5 @@
 // Цей лог має з'явитися в логах Vercel, якщо файл взагалі виконується
-console.log("Bot file started! (Version with order flow and image explanation)")
+console.log("Bot file started! (Version with multiple images support)")
 
 import TelegramBot from "node-telegram-bot-api"
 import express from "express"
@@ -29,93 +29,134 @@ app.get("/", (req, res) => {
 const headphones = {
   soundcore_p30i: {
     name: "Soundcore P30i",
-    price: 79, // Приклад ціни
+    price: 79,
     colors: ["black", "pink"],
-    image: "/images/soundcore_p30i.jpg", // Змінено на реальний шлях до зображення
+    images: [
+      // Змінено на масив зображень
+      "/images/soundcore_p30i_1.jpg",
+      "/images/soundcore_p30i_2.jpg",
+      "/images/soundcore_p30i_3.jpg",
+    ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_liberty_4: {
     name: "Soundcore Liberty 4",
-    price: 129, // Приклад ціни
+    price: 129,
     colors: ["black"],
-    image: "/images/soundcore_liberty_4.jpg", // Змінено на реальний шлях до зображення
+    images: [
+      "/images/soundcore_liberty_4_1.jpg",
+      "/images/soundcore_liberty_4_2.jpg",
+      "/images/soundcore_liberty_4_3.jpg",
+    ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_liberty_3_pro: {
     name: "Soundcore Liberty 3 Pro",
-    price: 99, // Приклад ціни
+    price: 99,
     colors: ["black", "white"],
-    image: "/images/soundcore_liberty_3_pro.jpg", // Змінено на реальний шлях до зображення
+    images: [
+      "/images/soundcore_liberty_3_pro_1.jpg",
+      "/images/soundcore_liberty_3_pro_2.jpg",
+      "/images/soundcore_liberty_3_pro_3.jpg",
+    ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_space_a40: {
     name: "Soundcore Space A40",
-    price: 119, // Приклад ціни
+    price: 119,
     colors: ["black", "white", "dark_blue"],
-    image: "/images/soundcore_space_a40.jpg", // Змінено на реальний шлях до зображення
+    images: [
+      "/images/soundcore_space_a40_1.jpg",
+      "/images/soundcore_space_a40_2.jpg",
+      "/images/soundcore_space_a40_3.jpg",
+    ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_aerofit: {
     name: "Soundcore AeroFit",
-    price: 139, // Приклад ціни
+    price: 139,
     colors: ["black", "pink"],
-    image: "/images/soundcore_aerofit.jpg", // Змінено на реальний шлях до зображення
+    images: ["/images/soundcore_aerofit_1.jpg", "/images/soundcore_aerofit_2.jpg", "/images/soundcore_aerofit_3.jpg"],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_a20_sleep: {
     name: "Soundcore A20 Sleep",
-    price: 149, // Приклад ціни
+    price: 149,
     colors: ["white"],
-    image: "/images/soundcore_a20_sleep.jpg", // Змінено на реальний шлях до зображення
+    images: [
+      "/images/soundcore_a20_sleep_1.jpg",
+      "/images/soundcore_a20_sleep_2.jpg",
+      "/images/soundcore_a20_sleep_3.jpg",
+    ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_tune: {
     name: "Soundcore TUNE",
-    price: 59, // Приклад ціни
+    price: 59,
     colors: ["black"],
-    image: "/images/soundcore_tune.jpg", // Змінено на реальний шлях до зображення
+    images: ["/images/soundcore_tune_1.jpg", "/images/soundcore_tune_2.jpg", "/images/soundcore_tune_3.jpg"],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_q21i_nc: {
     name: "Soundcore Q21i NC",
-    price: 69, // Приклад ціни
+    price: 69,
     colors: ["black"],
-    image: "/images/soundcore_q21i_nc.jpg", // Змінено на реальний шлях до зображення
+    images: ["/images/soundcore_q21i_nc_1.jpg", "/images/soundcore_q21i_nc_2.jpg", "/images/soundcore_q21i_nc_3.jpg"],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_space_one: {
     name: "Soundcore Space One",
-    price: 109, // Приклад ціни
+    price: 109,
     colors: ["black", "light_blue"],
-    image: "/images/soundcore_space_one.jpg", // Змінено на реальний шлях до зображення
+    images: [
+      "/images/soundcore_space_one_1.jpg",
+      "/images/soundcore_space_one_2.jpg",
+      "/images/soundcore_space_one_3.jpg",
+    ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_space_one_pro: {
     name: "Soundcore Space One Pro",
-    price: 159, // Приклад ціни
+    price: 159,
     colors: ["black", "cream"],
-    image: "/images/soundcore_space_one_pro.jpg", // Змінено на реальний шлях до зображення
+    images: [
+      "/images/soundcore_space_one_pro_1.jpg",
+      "/images/soundcore_space_one_pro_2.jpg",
+      "/images/soundcore_space_one_pro_3.jpg",
+    ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_liberty_4_pro: {
     name: "Soundcore Liberty 4 Pro",
-    price: 179, // Приклад ціни
+    price: 179,
     colors: ["black"],
-    image: "/images/soundcore_liberty_4_pro.jpg", // Змінено на реальний шлях до зображення
+    images: [
+      "/images/soundcore_liberty_4_pro_1.jpg",
+      "/images/soundcore_liberty_4_pro_2.jpg",
+      "/images/soundcore_liberty_4_pro_3.jpg",
+    ],
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
   soundcore_liberty_4_nc: {
     name: "Soundcore Liberty 4 NC",
-    price: 139, // Приклад ціни
+    price: 139,
     colors: ["black", "white", "blue"],
-    image: "/images/soundcore_liberty_4_nc.jpg", // Змінено на реальний шлях до зображення
+    images: [
+      "/images/soundcore_liberty_4_nc_1.jpg",
+      "/images/soundcore_liberty_4_nc_2.jpg",
+      "/images/soundcore_liberty_4_nc_3.jpg",
+    ],
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
   soundcore_aerofit_pro: {
     name: "Soundcore AeroFit Pro",
-    price: 189, // Приклад ціни
+    price: 189,
     colors: ["black", "blue"],
-    image: "/images/soundcore_aerofit_pro.jpg", // Змінено на реальний шлях до зображення
+    images: [
+      "/images/soundcore_aerofit_pro_1.jpg",
+      "/images/soundcore_aerofit_pro_2.jpg",
+      "/images/soundcore_aerofit_pro_3.jpg",
+    ],
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
 }
@@ -374,8 +415,7 @@ async function showProduct(chatId, productId, userId) {
   const product = headphones[productId]
   if (!product) return
 
-  // Отримуємо актуальний VERCEL_URL тут, щоб він завжди був свіжим
-  const currentWebhookUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://example.com" // Запасний варіант для локального тестування
+  const currentWebhookUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://example.com"
 
   const productMessage = `
 🎧 ${product.name}
@@ -401,18 +441,24 @@ ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰
     },
   }
 
-  // Конструюємо повну URL зображення
-  const fullImageUrl = `${currentWebhookUrl}${product.image}`
-  console.log("DEBUG: VERCEL_URL (inside showProduct):", process.env.VERCEL_URL) // Логуємо сирий VERCEL_URL
-  console.log("DEBUG: Constructed fullImageUrl (inside showProduct):", fullImageUrl) // Логуємо сформовану URL
-
   try {
-    await bot.sendPhoto(chatId, fullImageUrl, {
-      caption: productMessage,
-      reply_markup: options.reply_markup,
-    })
+    if (Array.isArray(product.images) && product.images.length > 0) {
+      const media = product.images.map((imgPath, index) => ({
+        type: "photo",
+        media: `${currentWebhookUrl}${imgPath}`,
+        caption: index === 0 ? productMessage : undefined, // Опис тільки для першого фото в альбомі
+      }))
+      await bot.sendMediaGroup(chatId, media, { reply_markup: options.reply_markup })
+    } else {
+      // Запасний варіант, якщо images не є масивом або порожній
+      const imageUrl = `${currentWebhookUrl}/placeholder.svg?height=300&width=300&text=No+Image`
+      await bot.sendPhoto(chatId, imageUrl, {
+        caption: productMessage,
+        reply_markup: options.reply_markup,
+      })
+    }
   } catch (error) {
-    console.error("Error sending product photo:", error)
+    console.error("Error sending product media/photo:", error)
     // Запасний варіант: відправити текстове повідомлення, якщо фото не вдалося
     try {
       await bot.sendMessage(chatId, `Помилка завантаження фото. ${productMessage}`, options)
