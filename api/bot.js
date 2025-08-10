@@ -34,9 +34,9 @@ const headphones = {
     price: 79,
     colors: ["black", "pink"],
     images: [
-      "https://drive.google.com/uc?export=view&id=1ulNKKqbAe9IvM185MYoNweLwuvorZX8J",
-      "https://drive.google.com/uc?export=view&id=1Wzz-TOUjfz0NxFqm4rC_EpbKGtWAmq48",
-      "https://drive.google.com/uc?export=view&id=1dO1nqZj24ryFJZrZIDQDw4GAqKU1_hDP"
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+P30i+1",
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+P30i+2",
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+P30i+3"
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -45,9 +45,9 @@ const headphones = {
     price: 129,
     colors: ["black"],
     images: [
-      "https://drive.google.com/uc?export=view&id=1jriC7SBav8GKG-3BLncV19khFRFNrQnG",
-      "https://drive.google.com/uc?export=view&id=1KLWiwmWPv4mnLskY6VxNgRyOJ_PH3LiV",
-      "https://drive.google.com/uc?export=view&id=1kpxsc7X1NHZjPWOClWxVNN9hUkiAhIpc"
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+4+1",
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+4+2",
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+4+3"
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -56,9 +56,9 @@ const headphones = {
     price: 99,
     colors: ["black", "white"],
     images: [
-      "https://drive.google.com/uc?export=view&id=17E94EA47ejSCPGMeN984tYIj2IDfyQZm",
-      "https://drive.google.com/uc?export=view&id=13S-B0U8F_zfKy5F71Kl3x39Blk-tFHiE",
-      "https://drive.google.com/uc?export=view&id=1rNTn6jofBn023CsZYWnV-BelhechdKJH"
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+3+Pro+1",
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+3+Pro+2",
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+3+Pro+3"
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -67,9 +67,9 @@ const headphones = {
     price: 119,
     colors: ["black", "white", "dark_blue"],
     images: [
-      "https://drive.google.com/uc?export=view&id=1VQNCqU5v7urscd_O5PHlbJgOyfHX-7QR",
-      "https://drive.google.com/uc?export=view&id=1xVWtDwrJ5GlDWN9dWvEa3T6WgeIfqQfg",
-      "https://drive.google.com/uc?export=view&id=1RObWeXAdaXaOEOFhplXFgfbLNbhCZHdi"
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Space+A40+1",
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Space+A40+2",
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Space+A40+3"
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -78,9 +78,9 @@ const headphones = {
     price: 139,
     colors: ["black", "pink"],
     images: [
-      "https://drive.google.com/uc?export=view&id=1GsLbqNyKAQ4GuxpVga6KTMs4uDiJwYGB",
-      "https://drive.google.com/uc?export=view&id=1rj1Hy5IP4Ex1pdETxnPpI0umohVuGfQi",
-      "https://drive.google.com/uc?export=view&id=1HM0Vom8g00X1R02jZ9CH67rSBMkYLrrQ"
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+AeroFit+1",
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+AeroFit+2",
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+AeroFit+3"
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -89,9 +89,9 @@ const headphones = {
     price: 149,
     colors: ["white"],
     images: [
-      "https://drive.google.com/uc?export=view&id=1a7Kdk5U8c_qjo_GIp4kWPsvUoRLJ9CfU",
-      "https://drive.google.com/uc?export=view&id=1WhfuHprES8qcriae9abwgwu_Avu7RGya",
-      "https://drive.google.com/uc?export=view&id=1n6GcFe7F6vXRTo-qxrZV-koirQPLIbut"
+      "https://via.placeholder.com/400x300/FFFFFF/000000?text=Soundcore+A20+Sleep+1",
+      "https://via.placeholder.com/400x300/FFFFFF/000000?text=Soundcore+A20+Sleep+2",
+      "https://via.placeholder.com/400x300/FFFFFF/000000?text=Soundcore+A20+Sleep+3"
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -100,9 +100,9 @@ const headphones = {
     price: 59,
     colors: ["black"],
     images: [
-      "https://drive.google.com/uc?export=view&id=1nnufI_l5jz1t141qRfvCeOZx9LRDCvLX",
-      "https://drive.google.com/uc?export=view&id=1y6JVXI9T_35lG-5WZBJ5cU7uKuNPu3th",
-      "https://drive.google.com/uc?export=view&id=1JcYtKHg0mzJyniC2rTe0Gu0kMHo_Yd9x"
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+TUNE+1",
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+TUNE+2",
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+TUNE+3"
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -111,9 +111,9 @@ const headphones = {
     price: 69,
     colors: ["black"],
     images: [
-      "https://drive.google.com/uc?export=view&id=1tIvZKyfe9k7BarS-R19lOPgLmNMFUCdQ",
-      "https://drive.google.com/uc?export=view&id=16cX3ZBDR-lRxJoR4swRhVzzulg_v1hzq",
-      "https://drive.google.com/uc?export=view&id=1q8MMwhsl78rRwUThkS9HmQUDn9ilpSZV"
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Q21i+NC+1",
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Q21i+NC+2",
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Q21i+NC+3"
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -122,9 +122,9 @@ const headphones = {
     price: 109,
     colors: ["black", "light_blue"],
     images: [
-      "https://drive.google.com/uc?export=view&id=13XSCKWq6Bb2neKDIPkzKcEntTtqvTmBN",
-      "https://drive.google.com/uc?export=view&id=1hA_ElSi34-mo4c6SWwAUYGX1QvRGMmmv",
-      "https://drive.google.com/uc?export=view&id=17WMlAe1JEqsQGjrZWQnKdnw90coDs5i-"
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Space+One+1",
+      "https://via.placeholder.com/400x300/87CEEB/000000?text=Soundcore+Space+One+2",
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Space+One+3"
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -133,9 +133,9 @@ const headphones = {
     price: 159,
     colors: ["black", "cream"],
     images: [
-      "https://drive.google.com/uc?export=view&id=1CxVBCzk4mthOCaa-N4Nv58YhgjVoMQE2",
-      "https://drive.google.com/uc?export=view&id=1Rnbn7hZmKs_WToRIrl56eT8HsjTjJx2v",
-      "https://drive.google.com/uc?export=view&id=1yjWS4a8TDRS14pSGtjDgxWu93hPQ642N"
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Space+One+Pro+1",
+      "https://via.placeholder.com/400x300/F5F5DC/000000?text=Soundcore+Space+One+Pro+2",
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Space+One+Pro+3"
     ],
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
@@ -144,9 +144,9 @@ const headphones = {
     price: 179,
     colors: ["black"],
     images: [
-      "https://drive.google.com/uc?export=view&id=1qaVI_a9wrKXtEg1B7IpVXc7Erdt74Um9",
-      "https://drive.google.com/uc?export=view&id=17KQhzQlsqGUT4mrpC5AAfJsq23xccD9a",
-      "https://drive.google.com/uc?export=view&id=12g5o9OnYgs2vxeEdobV2JNdUR8ilmBDL"
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+4+Pro+1",
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+4+Pro+2",
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+4+Pro+3"
     ],
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
@@ -155,9 +155,9 @@ const headphones = {
     price: 139,
     colors: ["black", "white", "blue"],
     images: [
-      "https://drive.google.com/uc?export=view&id=1tUbTWpmiW47R0-xFdMsS4OrO6I5xL3gZ",
-      "https://drive.google.com/uc?export=view&id=1DcdOs6VKt2oMevY7u7k-5bDyoM4rqNZu",
-      "https://drive.google.com/uc?export=view&id=1iUUfDv1eqFS3pKrgcWRLOSpaXQBFUbCt"
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+Liberty+4+NC+1",
+      "https://via.placeholder.com/400x300/FFFFFF/000000?text=Soundcore+Liberty+4+NC+2",
+      "https://via.placeholder.com/400x300/0000FF/FFFFFF?text=Soundcore+Liberty+4+NC+3"
     ],
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
@@ -166,9 +166,9 @@ const headphones = {
     price: 189,
     colors: ["black", "blue"],
     images: [
-      "https://drive.google.com/uc?export=view&id=1D4HyaKgsUek7CqHE8z8dgF2hiRlPPMBU",
-      "https://drive.google.com/uc?export=view&id=1qaVI_a9wrKXtEg1B7IpVXc7Erdt74Um9",
-      "https://drive.google.com/uc?export=view&id=17KQhzQlsqGUT4mrpC5AAfJsq23xccD9a"
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+AeroFit+Pro+1",
+      "https://via.placeholder.com/400x300/0000FF/FFFFFF?text=Soundcore+AeroFit+Pro+2",
+      "https://via.placeholder.com/400x300/000000/FFFFFF?text=Soundcore+AeroFit+Pro+3"
     ],
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
@@ -254,7 +254,7 @@ bot.on("callback_query", async (callbackQuery) => {
       await showProduct(chatId, productId, userId)
     } else if (data.startsWith("color_")) {
       const [, productId, color] = data.split("_")
-      await selectColor(chatId, userId, productId, color)
+      await addToCart(chatId, userId, productId, color) // Одразу додаємо в кошик
     } else if (data.startsWith("add_to_cart_")) {
       const [, , , productId, color] = data.split("_")
       await addToCart(chatId, userId, productId, color)
