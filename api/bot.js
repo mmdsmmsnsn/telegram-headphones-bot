@@ -220,6 +220,9 @@ bot.on("callback_query", async (callbackQuery) => {
   const data = callbackQuery.data
   const userId = callbackQuery.from.id
 
+  await bot.answerCallbackQuery(callbackQuery.id) // Відповідаємо негайно
+  console.log("DEBUG: Answered callback query:", callbackQuery.id) // Додаємо лог для підтвердження
+
   console.log("Received callback query data:", data)
 
   try {
@@ -259,7 +262,7 @@ bot.on("callback_query", async (callbackQuery) => {
       await cancelOrder(chatId)
     }
 
-    await bot.answerCallbackQuery(callbackQuery.id)
+    // await bot.answerCallbackQuery(callbackQuery.id)
   } catch (error) {
     console.error("Error handling callback:", error)
     await bot.answerCallbackQuery(callbackQuery.id, { text: "Виникла помилка" })
