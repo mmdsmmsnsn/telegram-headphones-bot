@@ -554,19 +554,25 @@ ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰
   try {
     if (Array.isArray(product.images) && product.images.length > 0) {
       const firstImageUrl = product.images[0]
+      console.log(`DEBUG: Attempting to send image for product ${productId}:`, firstImageUrl)
+
       await bot.sendPhoto(chatId, firstImageUrl, {
         caption: productMessage,
         reply_markup: options.reply_markup,
       })
+
+      console.log(`DEBUG: Successfully sent image for product ${productId}`)
     } else {
       const imageUrl = `${currentWebhookUrl}/placeholder.svg?height=300&width=300&text=No+Image`
+      console.log(`DEBUG: No images found for product ${productId}, using placeholder:`, imageUrl)
       await bot.sendPhoto(chatId, imageUrl, {
         caption: productMessage,
         reply_markup: options.reply_markup,
       })
     }
   } catch (error) {
-    console.error("Error sending product media/photo:", error)
+    console.error(`Error sending product media/photo for ${productId}:`, error)
+    console.error(`Failed URL:`, product.images?.[0] || "No URL")
     try {
       await bot.sendMessage(chatId, `Помилка завантаження фото. ${productMessage}`, options)
     } catch (fallbackError) {
