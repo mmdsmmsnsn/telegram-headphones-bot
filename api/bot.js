@@ -1,9 +1,7 @@
-// Цей лог має з'явитися в логах Vercel, якщо файл взагалі виконується
 console.log("DEBUG: Bot file execution started at top of file!")
-
 import TelegramBot from "node-telegram-bot-api"
 import express from "express"
-import fs from "fs"
+import { createClient } from "@supabase/supabase-js"
 
 console.log("DEBUG: Imports completed.")
 
@@ -11,22 +9,27 @@ const token = process.env.TELEGRAM_BOT_TOKEN
 const app = express()
 const port = process.env.PORT || 3000
 
-console.log("DEBUG: Variables initialized. Token present:", !!token) // Перевіряємо, чи токен існує
+const supabaseUrl = process.env.SUPABASE_URL
+const supabaseKey = process.env.SUPABASE_ANON_KEY
+const supabase = createClient(supabaseUrl, supabaseKey)
+
+const ORDERS_CHANNEL_ID = process.env.ORDERS_CHANNEL_ID || "-1002534353239"
+
+console.log("DEBUG: Variables initialized. Token present:", !!token)
 
 const bot = new TelegramBot(token)
-
 app.use(express.json())
 
-// Обробка webhook запитів.
+// Обробка webhook запитів
 app.post(`/api/webhook`, (req, res) => {
-  console.log("Received webhook request on /api/webhook!") // Лог для кожного вхідного webhook
+  console.log("Received webhook request on /api/webhook!")
   bot.processUpdate(req.body)
   res.sendStatus(200)
 })
 
-// Здоров'я сервісу.
+// Здоров'я сервісу
 app.get("/", (req, res) => {
-  console.log("Received root path request on /!") // Лог для запитів на кореневий шлях
+  console.log("Received root path request on /!")
   res.send("Telegram Bot is running!")
 })
 
@@ -36,12 +39,7 @@ const headphones = {
     name: "Soundcore P30i",
     price: 79,
     colors: ["black", "pink"],
-    images: [
-      // Змінено на масив зображень
-      "/images/soundcore_p30i_1.jpg",
-      "/images/soundcore_p30i_2.jpg",
-      "/images/soundcore_p30i_3.jpg",
-    ],
+    images: ["/images/soundcore_p30i_1.jpg", "/images/soundcore_p30i_2.jpg", "/images/soundcore_p30i_3.jpg"],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_liberty_4: {
@@ -183,51 +181,56 @@ const colorEmojis = {
 const userCarts = new Map()
 
 // Зберігання станів користувачів для процесу замовлення
-const userStates = new Map() // userId -> { step: 'awaiting_name', orderData: {} }
+const userStates = new Map()
 
-const ORDERS_FILE = "orders.json"
-
-// Функция для загрузки заказов из файла
-function loadOrders() {
+// Функция для загрузки заказов из Supabase
+async function loadOrders() {
   try {
-    if (fs.existsSync(ORDERS_FILE)) {
-      const data = fs.readFileSync(ORDERS_FILE, "utf8")
-      return JSON.parse(data)
+    const { data, error } = await supabase.from("orders").select("*").order("date", { ascending: false })
+
+    if (error) {
+      console.error("Error loading orders from Supabase:", error)
+      return []
     }
+
+    return data || []
   } catch (error) {
     console.error("Error loading orders:", error)
+    return []
   }
-  return []
 }
 
-// Функция для сохранения заказов в файл
-function saveOrders(orders) {
+// Функция для сохранения заказа в Supabase
+async function saveOrder(order) {
   try {
-    fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2))
+    const { data, error } = await supabase.from("orders").insert([order]).select()
+
+    if (error) {
+      console.error("Error saving order to Supabase:", error)
+      return false
+    }
+
+    console.log("Order saved to Supabase:", data)
+    return true
   } catch (error) {
-    console.error("Error saving orders:", error)
+    console.error("Error saving order:", error)
+    return false
   }
 }
 
-const allOrders = loadOrders()
-
-// ID адміністратора (замініть на ваш Telegram ID)
-const ADMIN_ID = process.env.ADMIN_ID || 6486502899 // Замініть на ваш реальний Telegram ID
+// ID адміністратора
+const ADMIN_ID = process.env.ADMIN_ID || 6486502899
 
 // --- Обробники команд та callback запитів ---
-
 // Команда /start
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id
-  // Очищаємо стан користувача при старті
   userStates.delete(chatId)
-
   const welcomeMessage = `🎧 Ласкаво просимо до магазину навушників Soundcore!
 
 Всі навушники нові, але упаковка відкрита. Гарантій немає.
 
-Оберіть дію:
-  `
+Оберіть дію:`
 
   const options = {
     reply_markup: {
@@ -251,11 +254,12 @@ bot.onText(/\/orders/, async (msg) => {
   const chatId = msg.chat.id
   const userId = msg.from.id
 
-  // Перевіряємо, чи це адміністратор
   if (userId !== ADMIN_ID) {
     await bot.sendMessage(chatId, "❌ У вас немає доступу до цієї команди.")
     return
   }
+
+  const allOrders = await loadOrders()
 
   if (allOrders.length === 0) {
     await bot.sendMessage(chatId, "📋 Замовлень поки немає.")
@@ -263,20 +267,17 @@ bot.onText(/\/orders/, async (msg) => {
   }
 
   let ordersMessage = `📋 Всі замовлення (${allOrders.length}):\n\n`
-
   allOrders.slice(-10).forEach((order, index) => {
-    // Показуємо останні 10 замовлень
     ordersMessage += `🆔 #${order.id}\n`
-    ordersMessage += `👤 ${order.customerData.fullName}\n`
-    ordersMessage += `👨‍💻 Username: ${order.customerData.username || "не вказано"}\n`
-    ordersMessage += `📞 ${order.customerData.phone}\n`
-    ordersMessage += `📧 ${order.customerData.email}\n`
-    ordersMessage += `🏠 ${order.customerData.address}, ${order.customerData.city}\n`
+    ordersMessage += `👤 ${order.customer_data.fullName}\n`
+    ordersMessage += `👨‍💻 Username: ${order.username || "не вказано"}\n`
+    ordersMessage += `📞 ${order.customer_data.phone}\n`
+    ordersMessage += `📧 ${order.customer_data.email}\n`
+    ordersMessage += `🏠 ${order.customer_data.address}, ${order.customer_data.city}\n`
     ordersMessage += `💰 Сума: ${order.total > 0 ? `$${order.total}` : "Уточнюйте"}\n`
     ordersMessage += `📅 ${new Date(order.date).toLocaleString("uk-UA")}\n`
     ordersMessage += `📦 Товари:\n`
 
-    // Детальна інформація про кожен товар
     order.items.forEach((item, itemIndex) => {
       ordersMessage += `   ${itemIndex + 1}. ${item.name}\n`
       ordersMessage += `      🎨 ${item.colorDisplay}\n`
@@ -292,6 +293,109 @@ bot.onText(/\/orders/, async (msg) => {
   }
 })
 
+// Завершення замовлення після збору всіх данних
+async function finalizeOrder(chatId, userId, orderData) {
+  let orderSummary = "📋 Ваше замовлення успішно оформлено!\n\n"
+  let total = 0
+  orderSummary += "--- Товари в кошику ---\n"
+  orderData.cart.forEach((item, index) => {
+    orderSummary += `${index + 1}. ${item.name}\n`
+    orderSummary += `   🎨 ${colorEmojis[item.color]}\n`
+    orderSummary += `   💰 ${typeof item.price === "number" ? `$${item.price}` : "Ціну уточнюйте"}\n\n`
+    if (typeof item.price === "number") {
+      total += item.price
+    }
+  })
+
+  orderSummary += `--- Дані покупця ---\n`
+  orderSummary += `👤 ПІБ: ${orderData.fullName}\n`
+  orderSummary += `📧 Email: ${orderData.email}\n`
+  orderSummary += `📞 Телефон: ${orderData.phone}\n`
+  orderSummary += `🏠 Адреса: ${orderData.address}, ${orderData.city}\n\n`
+  orderSummary += `💳 Загальна сума: ${total > 0 ? `$${total}` : "Уточнюйте"}\n\n`
+
+  const orderId = Date.now()
+  orderSummary += `🆔 Номер замовлення: #${orderId}\n\n`
+  orderSummary += `Дякуємо за ваше замовлення! Ми зв'яжемося з вами найближчим часом.`
+
+  // Отримуємо інформацію про користувача для збереження username
+  let username = "не вказано"
+  try {
+    const chatMember = await bot.getChatMember(chatId, userId)
+    username = chatMember.user.username || "не вказано"
+  } catch (error) {
+    console.log("Could not get username:", error.message)
+  }
+
+  const order = {
+    id: orderId,
+    user_id: userId,
+    chat_id: chatId,
+    date: new Date().toISOString(),
+    customer_data: {
+      fullName: orderData.fullName,
+      email: orderData.email,
+      phone: orderData.phone,
+      address: orderData.address,
+      city: orderData.city,
+    },
+    items: orderData.cart.map((item) => ({
+      productId: item.productId,
+      name: item.name,
+      color: item.color,
+      colorDisplay: colorEmojis[item.color],
+      price: item.price,
+    })),
+    total: total > 0 ? total : "Уточнюйте",
+    status: "новий",
+    username: username,
+  }
+
+  const saved = await saveOrder(order)
+
+  if (!saved) {
+    await bot.sendMessage(chatId, "❌ Помилка при збереженні замовлення. Спробуйте ще раз.")
+    return
+  }
+
+  // Очищаємо кошик після успішного замовлення
+  userCarts.delete(userId)
+
+  const options = {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: "🛍️ Нове замовлення", callback_data: "catalog" }],
+        [{ text: "🏠 Головне меню", callback_data: "back_to_main" }],
+      ],
+    },
+  }
+
+  try {
+    await bot.sendMessage(chatId, orderSummary, options)
+
+    if (ORDERS_CHANNEL_ID) {
+      const channelMessage = `🔔 НОВЕ ЗАМОВЛЕННЯ #${orderId}\n\n${orderSummary}`
+      try {
+        await bot.sendMessage(ORDERS_CHANNEL_ID, channelMessage)
+        console.log("Order notification sent to channel")
+      } catch (channelError) {
+        console.error("Error sending channel notification:", channelError)
+
+        // Fallback: send to admin if channel fails
+        if (ADMIN_ID) {
+          try {
+            await bot.sendMessage(ADMIN_ID, channelMessage)
+          } catch (adminError) {
+            console.error("Error sending admin notification:", adminError)
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error sending final order summary:", error)
+  }
+}
+
 // Обробка callback запитів
 bot.on("callback_query", async (callbackQuery) => {
   console.log("Callback query handler triggered!")
@@ -299,12 +403,10 @@ bot.on("callback_query", async (callbackQuery) => {
   const chatId = message.chat.id
   const data = callbackQuery.data
   const userId = callbackQuery.from.id
-
-  console.log("DEBUG: Answered callback query:", callbackQuery.id) // Додаємо лог для підтвердження
+  console.log("DEBUG: Answered callback query:", callbackQuery.id)
   console.log("Received callback query data:", data)
 
   try {
-    // Якщо користувач знаходиться в процесі замовлення, ініціюємо скасування
     if (userStates.has(chatId) && data !== "cancel_order") {
       await bot.answerCallbackQuery(callbackQuery.id, {
         text: "Будь ласка, завершіть або скасуйте поточне замовлення.",
@@ -335,7 +437,7 @@ bot.on("callback_query", async (callbackQuery) => {
       const itemIndex = Number.parseInt(data.replace("remove_", ""))
       await removeFromCart(chatId, userId, itemIndex)
     } else if (data === "checkout") {
-      await startCheckout(chatId, userId) // Нова функція для початку оформлення
+      await startCheckout(chatId, userId)
     } else if (data === "back_to_catalog") {
       await showCatalog(chatId)
     } else if (data === "back_to_main") {
@@ -357,7 +459,6 @@ bot.on("message", async (msg) => {
   const userId = msg.from.id
   const text = msg.text
 
-  // Ігноруємо команди, якщо вони не є частиною поточного стану
   if (text.startsWith("/") && text !== "/start") {
     if (userStates.has(chatId)) {
       await bot.sendMessage(
@@ -368,9 +469,7 @@ bot.on("message", async (msg) => {
     return
   }
 
-  // Якщо це команда /start, обробляємо її окремо
   if (text === "/start") {
-    // bot.onText(/\/start/) вже обробить це
     return
   }
 
@@ -387,7 +486,6 @@ bot.on("message", async (msg) => {
             },
           })
           break
-
         case "awaiting_email":
           if (!/\S+@\S+\.\S+/.test(text)) {
             await bot.sendMessage(chatId, "Будь ласка, введіть коректну електронну пошту.")
@@ -401,7 +499,6 @@ bot.on("message", async (msg) => {
             },
           })
           break
-
         case "awaiting_phone":
           if (!/^\+?\d{10,15}$/.test(text)) {
             await bot.sendMessage(chatId, "Будь ласка, введіть коректний номер телефону.")
@@ -415,7 +512,6 @@ bot.on("message", async (msg) => {
             },
           })
           break
-
         case "awaiting_address":
           currentState.orderData.address = text
           currentState.step = "awaiting_city"
@@ -425,10 +521,9 @@ bot.on("message", async (msg) => {
             },
           })
           break
-
         case "awaiting_city":
           currentState.orderData.city = text
-          userStates.delete(chatId) // Завершуємо стан
+          userStates.delete(chatId)
           await finalizeOrder(chatId, userId, currentState.orderData)
           break
       }
@@ -439,9 +534,6 @@ bot.on("message", async (msg) => {
         "Виникла помилка при обробці ваших даних. Спробуйте ще раз або скасуйте замовлення.",
       )
     }
-  } else {
-    // Якщо немає активного стану, ігноруємо текстові повідомлення або відповідаємо стандартно
-    // await bot.sendMessage(chatId, 'Я не розумію цю команду. Будь ласка, скористайтеся кнопками або командою /start.');
   }
 })
 
@@ -451,8 +543,7 @@ async function showMainMenu(chatId) {
 
 Всі навушники нові, але упаковка відкрита. Гарантій немає.
 
-Оберіть дію:
-  `
+Оберіть дію:`
 
   const options = {
     reply_markup: {
@@ -510,8 +601,7 @@ ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰
 
 📝 ${product.description}
 
-🎨 Доступні кольори:
-  `
+🎨 Доступні кольори:`
 
   const colorKeyboard = product.colors.map((color) => [
     {
@@ -533,16 +623,12 @@ ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰
       const media = product.images.map((imgPath, index) => ({
         type: "photo",
         media: `${currentWebhookUrl}${imgPath}`,
-        caption: index === 0 ? productMessage : undefined, // Опис тільки для першого фото в альбомі
+        caption: index === 0 ? productMessage : undefined,
       }))
 
-      // Відправляємо медіа групу
       await bot.sendMediaGroup(chatId, media)
-
-      // Відправляємо окреме повідомлення з кнопками, оскільки sendMediaGroup не підтримує reply_markup
       await bot.sendMessage(chatId, "Оберіть колір:", options)
     } else {
-      // Запасний варіант, якщо images не є масивом або порожній
       const imageUrl = `${currentWebhookUrl}/placeholder.svg?height=300&width=300&text=No+Image`
       await bot.sendPhoto(chatId, imageUrl, {
         caption: productMessage,
@@ -551,7 +637,6 @@ ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰
     }
   } catch (error) {
     console.error("Error sending product media/photo:", error)
-    // Запасний варіант: відправити текстове повідомлення, якщо фото не вдалося
     try {
       await bot.sendMessage(chatId, `Помилка завантаження фото. ${productMessage}`, options)
     } catch (fallbackError) {
@@ -565,7 +650,6 @@ async function selectColor(chatId, userId, productId, color) {
   const product = headphones[productId]
   if (!product) return
 
-  // Автоматично додаємо товар до кошика
   if (!userCarts.has(userId)) {
     userCarts.set(userId, [])
   }
@@ -575,7 +659,7 @@ async function selectColor(chatId, userId, productId, color) {
     productId,
     name: product.name,
     color,
-    price: product.price, // Зберігаємо ціну як є (рядок або число)
+    price: product.price,
   })
 
   const successMessage = `✅ Товар автоматично додано до кошика!
@@ -584,8 +668,7 @@ async function selectColor(chatId, userId, productId, color) {
 🎨 ${colorEmojis[color]}
 ${typeof product.price === "number" ? `💰 $${product.price}` : "💰 Ціну уточнюйте"}
 
-Що бажаєте зробити далі?
-  `
+Що бажаєте зробити далі?`
 
   const options = {
     reply_markup: {
@@ -618,7 +701,7 @@ async function addToCart(chatId, userId, productId, color) {
     productId,
     name: product.name,
     color,
-    price: product.price, // Зберігаємо ціну як є (рядок або число)
+    price: product.price,
   })
 
   const successMessage = `✅ Товар додано до кошика!
@@ -627,8 +710,7 @@ async function addToCart(chatId, userId, productId, color) {
 🎨 ${colorEmojis[color]}
 ${typeof product.price === "number" ? `💰 $${product.price}` : "💰 Ціну уточнюйте"}
 
-Що бажаєте зробити далі?
-  `
+Що бажаєте зробити далі?`
 
   const options = {
     reply_markup: {
@@ -653,7 +735,6 @@ async function showCart(chatId, userId) {
 
   if (cart.length === 0) {
     const emptyMessage = "🛒 Ваш кошик порожній\n\nПерейдіть до каталогу для вибору товарів."
-
     const options = {
       reply_markup: {
         inline_keyboard: [
@@ -672,14 +753,13 @@ async function showCart(chatId, userId) {
   }
 
   let cartMessage = "🛒 Ваш кошик:\n\n"
-  let total = 0 // Загальна сума, якщо всі ціни числові
+  let total = 0
 
   cart.forEach((item, index) => {
     cartMessage += `${index + 1}. ${item.name}\n`
     cartMessage += `   🎨 ${colorEmojis[item.color]}\n`
     cartMessage += `   💰 ${typeof item.price === "number" ? `$${item.price}` : "Ціну уточнюйте"}\n\n`
 
-    // Додаємо до загальної суми, тільки якщо ціна числова
     if (typeof item.price === "number") {
       total += item.price
     }
@@ -713,13 +793,11 @@ async function removeFromCart(chatId, userId, itemIndex) {
 
   if (itemIndex >= 0 && itemIndex < cart.length) {
     const removedItem = cart.splice(itemIndex, 1)[0]
-
     try {
       await bot.sendMessage(chatId, `✅ ${removedItem.name} видалено з кошика`)
       if (cart.length > 0) {
         await showCart(chatId, userId)
       } else {
-        // Если корзина пуста, показываем сообщение о пустой корзине
         await bot.sendMessage(chatId, "🛒 Ваш кошик тепер порожній", {
           reply_markup: {
             inline_keyboard: [
@@ -790,93 +868,6 @@ async function cancelOrder(chatId) {
   }
 }
 
-// Завершення замовлення після збору всіх даних
-async function finalizeOrder(chatId, userId, orderData) {
-  let orderSummary = "📋 Ваше замовлення успішно оформлено!\n\n"
-  let total = 0
-
-  orderSummary += "--- Товари в кошику ---\n"
-  orderData.cart.forEach((item, index) => {
-    orderSummary += `${index + 1}. ${item.name}\n`
-    orderSummary += `   🎨 ${colorEmojis[item.color]}\n`
-    orderSummary += `   💰 ${typeof item.price === "number" ? `$${item.price}` : "Ціну уточнюйте"}\n\n`
-
-    if (typeof item.price === "number") {
-      total += item.price
-    }
-  })
-
-  orderSummary += `--- Дані покупця ---\n`
-  orderSummary += `👤 ПІБ: ${orderData.fullName}\n`
-  orderSummary += `📧 Email: ${orderData.email}\n`
-  orderSummary += `📞 Телефон: ${orderData.phone}\n`
-  orderSummary += `🏠 Адреса: ${orderData.address}, ${orderData.city}\n\n`
-  orderSummary += `💳 Загальна сума: ${total > 0 ? `$${total}` : "Уточнюйте"}\n\n`
-  const orderId = Date.now()
-  orderSummary += `🆔 Номер замовлення: #${orderId}\n\n`
-  orderSummary += `Дякуємо за ваше замовлення! Ми зв'яжемося з вами найближчим часом.`
-
-  // Отримуємо інформацію про користувача для збереження username
-  let username = "не вказано"
-  try {
-    const chatMember = await bot.getChatMember(chatId, userId)
-    username = chatMember.user.username || "не вказано"
-  } catch (error) {
-    console.log("Could not get username:", error.message)
-  }
-
-  const order = {
-    id: orderId,
-    userId: userId,
-    chatId: chatId,
-    date: new Date().toISOString(),
-    customerData: {
-      fullName: orderData.fullName,
-      email: orderData.email,
-      phone: orderData.phone,
-      address: orderData.address,
-      city: orderData.city,
-    },
-    items: orderData.cart.map((item) => ({
-      productId: item.productId,
-      name: item.name,
-      color: item.color,
-      colorDisplay: colorEmojis[item.color],
-      price: item.price,
-    })),
-    total: total > 0 ? total : "Уточнюйте",
-    status: "новий",
-  }
-
-  allOrders.push(order)
-  saveOrders(allOrders)
-
-  const options = {
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: "🛍️ Нове замовлення", callback_data: "catalog" }],
-        [{ text: "🏠 Головне меню", callback_data: "back_to_main" }],
-      ],
-    },
-  }
-
-  try {
-    await bot.sendMessage(chatId, orderSummary, options)
-
-    // Відправляємо повідомлення адміністратору про нове замовлення
-    if (ADMIN_ID) {
-      const adminMessage = `🔔 НОВЕ ЗАМОВЛЕННЯ #${orderId}\n\n${orderSummary}`
-      try {
-        await bot.sendMessage(ADMIN_ID, adminMessage)
-      } catch (adminError) {
-        console.error("Error sending admin notification:", adminError)
-      }
-    }
-  } catch (error) {
-    console.error("Error sending final order summary:", error)
-  }
-}
-
 // Показати інформацію про нас
 async function showAbout(chatId) {
   const aboutMessage =
@@ -895,6 +886,5 @@ async function showAbout(chatId) {
   }
 }
 
-// Експортуємо 'app' для Vercel Serverless Functions.
-// Це дозволяє Vercel знайти ваш Express додаток.
+// Експортуємо 'app' для Vercel Serverless Functions
 export default app
