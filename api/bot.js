@@ -370,7 +370,7 @@ bot.on("callback_query", async (callbackQuery) => {
   }
 })
 
-// Обробка текстов��х повідомлень (для збору даних замовлення)
+// Обробка текстових повідомлень (для збору даних замовлення)
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id
   const userId = msg.from.id
@@ -814,8 +814,17 @@ async function finalizeOrder(chatId, userId, orderData) {
     }
   })
 
+  let username = "не вказано"
+  try {
+    const chatMember = await bot.getChatMember(chatId, userId)
+    username = chatMember.user.username || "не вказано"
+  } catch (error) {
+    console.log("Could not get username:", error.message)
+  }
+
   orderSummary += `--- Дані покупця ---\n`
   orderSummary += `👤 ПІБ: ${orderData.fullName}\n`
+  orderSummary += `👨‍💻 Username: @${username}\n`
   orderSummary += `📧 Email: ${orderData.email}\n`
   orderSummary += `📞 Телефон: ${orderData.phone}\n`
   orderSummary += `🏠 Адреса: ${orderData.address}, ${orderData.city}\n\n`
@@ -824,14 +833,6 @@ async function finalizeOrder(chatId, userId, orderData) {
   const orderId = Date.now()
   orderSummary += `🆔 Номер замовлення: #${orderId}\n\n`
   orderSummary += `Дякуємо за ваше замовлення! Ми зв'яжемося з вами найближчим часом.`
-
-  let username = "не вказано"
-  try {
-    const chatMember = await bot.getChatMember(chatId, userId)
-    username = chatMember.user.username || "не вказано"
-  } catch (error) {
-    console.log("Could not get username:", error.message)
-  }
 
   const order = {
     id: orderId,
