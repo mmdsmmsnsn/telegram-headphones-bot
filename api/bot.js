@@ -880,22 +880,48 @@ async function finalizeOrder(chatId, userId, orderData) {
 
 // Added user tracking for mass notifications
 const allUsers = new Set() // Track all users who have interacted with the bot
+
+// Utility wrapper to execute promises or functions safely (used by admin broadcast flows)
+const withTimeout = async (maybeFnOrPromise) => {
+  try {
+    if (typeof maybeFnOrPromise === "function") {
+      return await maybeFnOrPromise()
+    }
+    return await maybeFnOrPromise
+  } catch (e) {
+    console.error("Error in withTimeout:", e)
+    return null
+  }
+}
 const userProfiles = new Map() // userId -> { chatId, username, firstName, lastName, lastActive }
 
-// Function to track user interactions
-function trackUser(msg) {
-  const userId = msg.from.id
-  const chatId = msg.chat.id
+// Function to track user interactions (handles messages and callback queries)
+function trackUser(msgOrCallback) {
+  try {
+    const from = msgOrCallback.from || (msgOrCallback.callback_query && msgOrCallback.callback_query.from)
+    const chat = msgOrCallback.chat || (msgOrCallback.message && msgOrCallback.message.chat) || (msgOrCallback.callback_query && msgOrCallback.callback_query.message && msgOrCallback.callback_query.message.chat)
 
-  allUsers.add(userId)
-  userProfiles.set(userId, {
-    chatId: chatId,
-    username: msg.from.username || null,
-    firstName: msg.from.first_name || null,
-    lastName: msg.from.last_name || null,
-    lastActive: new Date().toISOString(),
-  })
+    if (!from || !chat) {
+      // Unable to extract user/chat info; skip tracking
+      return
+    }
+
+    const userId = from.id
+    const chatId = chat.id
+
+    allUsers.add(userId)
+    userProfiles.set(userId, {
+      chatId: chatId,
+      username: from.username || null,
+      firstName: from.first_name || from.firstName || null,
+      lastName: from.last_name || from.lastName || null,
+      lastActive: new Date().toISOString(),
+    })
+  } catch (e) {
+    console.error("Error in trackUser:", e)
+  }
 }
+
 
 bot.on("callback_query", async (callbackQuery) => {
   const data = callbackQuery.data
