@@ -45,7 +45,11 @@ const headphones = {
     name: "Soundcore P30i",
     price: 79,
     colors: ["black", "pink"],
-    images: ["/images/soundcore_p30i_1.jpg", "/images/soundcore_p30i_2.jpg", "/images/soundcore_p30i_3.jpg"],
+    images: [
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_p30i_1-kcAQMNT5a6kIIQqY5lXtnDaAGavQKG.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_p30i_2-bX79umkTtrq2yo62ahrKvp6mGa4tKQE.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_p30i_3-GtcmrCnmgHnmgHnmgHnmgHnmgHnmgHn.jpg",
+    ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_liberty_4: {
@@ -53,9 +57,9 @@ const headphones = {
     price: 129,
     colors: ["black"],
     images: [
-      "/images/soundcore_liberty_4_1.jpg",
-      "/images/soundcore_liberty_4_2.jpg",
-      "/images/soundcore_liberty_4_3.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_liberty_4_1-example.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_liberty_4_2-example.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_liberty_4_3-example.jpg",
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -64,9 +68,9 @@ const headphones = {
     price: 99,
     colors: ["black", "white"],
     images: [
-      "/images/soundcore_liberty_3_pro_1.jpg",
-      "/images/soundcore_liberty_3_pro_2.jpg",
-      "/images/soundcore_liberty_3_pro_3.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_liberty_3_pro_1-example.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_liberty_3_pro_2-example.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_liberty_3_pro_3-example.jpg",
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -75,9 +79,9 @@ const headphones = {
     price: 119,
     colors: ["black", "white", "dark_blue"],
     images: [
-      "/images/soundcore_space_a40_1.jpg",
-      "/images/soundcore_space_a40_2.jpg",
-      "/images/soundcore_space_a40_3.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_space_a40_1-0ycNJVnpudGC0pzMCuPcNET7BooknJ.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_space_a40_2-GtcmrCnmgHnmgHnmgHnmgHnmgHnmgHn.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_space_a40_3-ZZCyKaBJnCG5UMcAmgCYCVDv2Q85df.jpg",
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -85,7 +89,11 @@ const headphones = {
     name: "Soundcore AeroFit",
     price: 139,
     colors: ["black", "pink"],
-    images: ["/images/soundcore_aerofit_1.jpg", "/images/soundcore_aerofit_2.jpg", "/images/soundcore_aerofit_3.jpg"],
+    images: [
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_aerofit_1-example.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_aerofit_2-example.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_aerofit_3-example.jpg",
+    ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_a20_sleep: {
@@ -93,9 +101,9 @@ const headphones = {
     price: 149,
     colors: ["white"],
     images: [
-      "/images/soundcore_a20_sleep_1.jpg",
-      "/images/soundcore_a20_sleep_2.jpg",
-      "/images/soundcore_a20_sleep_3.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_a20_sleep_1-example.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_a20_sleep_2-example.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_a20_sleep_3-example.jpg",
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -103,14 +111,22 @@ const headphones = {
     name: "Soundcore TUNE",
     price: 59,
     colors: ["black"],
-    images: ["/images/soundcore_tune_1.jpg", "/images/soundcore_tune_2.jpg", "/images/soundcore_tune_3.jpg"],
+    images: [
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_tune_1-BTUMYLg6oThnZ59AM95MYGqbJJy.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_tune_2-1ZrRnQAg5sT64F3FqTDMgbSX3QJA.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_tune_3-1fVKxDM9Zy4vMuAYXfMUbf69etuMJI.jpg",
+    ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_q21i_nc: {
     name: "Soundcore Q21i NC",
     price: 69,
     colors: ["black"],
-    images: ["/images/soundcore_q21i_nc_1.jpg", "/images/soundcore_q21i_nc_2.jpg", "/images/soundcore_q21i_nc_3.jpg"],
+    images: [
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_q21i_nc_1-example.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_q21i_nc_2-example.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_q21i_nc_3-example.jpg",
+    ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
   soundcore_space_one: {
@@ -118,9 +134,9 @@ const headphones = {
     price: 109,
     colors: ["black", "light_blue"],
     images: [
-      "/images/soundcore_space_one_1.jpg",
-      "/images/soundcore_space_one_2.jpg",
-      "/images/soundcore_space_one_3.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_space_one_1-6HESgBFnIJjuCk3MXm4vXJtOXCUla.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_space_one_2-example.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_space_one_3-example.jpg",
     ],
     description: "Оригінал / Нові / Упаковка відкрита / Гарантій немає",
   },
@@ -129,9 +145,9 @@ const headphones = {
     price: 159,
     colors: ["black", "cream"],
     images: [
-      "/images/soundcore_space_one_pro_1.jpg",
-      "/images/soundcore_space_one_pro_2.jpg",
-      "/images/soundcore_space_one_pro_3.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_space_one_pro_1-WD5PCgRcABN3aVMG81XKXummsCM8.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_space_one_pro_2-Am35GdJb2u1xDJJdCRPRxpdfaP16.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_space_one_pro_3-IoIKdP9VzZdZKwIAeY9dnuEeofouoa.jpg",
     ],
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
@@ -140,9 +156,9 @@ const headphones = {
     price: 179,
     colors: ["black"],
     images: [
-      "/images/soundcore_liberty_4_pro_1.jpg",
-      "/images/soundcore_liberty_4_pro_2.jpg",
-      "/images/soundcore_liberty_4_pro_3.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_liberty_4_pro_1-example.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_liberty_4_pro_2-example.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_liberty_4_pro_3-example.jpg",
     ],
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
@@ -151,9 +167,9 @@ const headphones = {
     price: 139,
     colors: ["black", "white", "blue"],
     images: [
-      "/images/soundcore_liberty_4_nc_1.jpg",
-      "/images/soundcore_liberty_4_nc_2.jpg",
-      "/images/soundcore_liberty_4_nc_3.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_liberty_4_nc_1-example.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_liberty_4_nc_2-example.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_liberty_4_nc_3-example.jpg",
     ],
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
@@ -162,9 +178,9 @@ const headphones = {
     price: 189,
     colors: ["black", "blue"],
     images: [
-      "/images/soundcore_aerofit_pro_1.jpg",
-      "/images/soundcore_aerofit_pro_2.jpg",
-      "/images/soundcore_aerofit_pro_3.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_aerofit_pro_1-example.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_aerofit_pro_2-example.jpg",
+      "https://yavcvvg6p1ggellz.public.blob.vercel-storage.com/soundcore_aerofit_pro_3-example.jpg",
     ],
     description: "Оригінал / Нові / Коробка відкрита / Гарантій немає",
   },
@@ -537,7 +553,7 @@ ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰
 
   try {
     if (Array.isArray(product.images) && product.images.length > 0) {
-      const firstImageUrl = `${currentWebhookUrl}${product.images[0]}`
+      const firstImageUrl = product.images[0]
       await bot.sendPhoto(chatId, firstImageUrl, {
         caption: productMessage,
         reply_markup: options.reply_markup,
