@@ -3,6 +3,7 @@ console.log("DEBUG: Bot file execution started at top of file!")
 
 import TelegramBot from "node-telegram-bot-api"
 import express from "express"
+import fs from "fs"
 
 console.log("DEBUG: Imports completed.")
 
@@ -184,12 +185,36 @@ const userCarts = new Map()
 // Зберігання станів користувачів для процесу замовлення
 const userStates = new Map() // userId -> { step: 'awaiting_name', orderData: {} }
 
-const allOrders = [] // Масив для зберігання всіх замовлень
+const ORDERS_FILE = "orders.json"
+
+// Функция для загрузки заказов из файла
+function loadOrders() {
+  try {
+    if (fs.existsSync(ORDERS_FILE)) {
+      const data = fs.readFileSync(ORDERS_FILE, "utf8")
+      return JSON.parse(data)
+    }
+  } catch (error) {
+    console.error("Error loading orders:", error)
+  }
+  return []
+}
+
+// Функция для сохранения заказов в файл
+function saveOrders(orders) {
+  try {
+    fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2))
+  } catch (error) {
+    console.error("Error saving orders:", error)
+  }
+}
+
+const allOrders = loadOrders()
 
 // ID адміністратора (замініть на ваш Telegram ID)
 const ADMIN_ID = process.env.ADMIN_ID || 6486502899 // Замініть на ваш реальний Telegram ID
 
-// --- Обробники команд та callback запитів ---
+// --- Обробник�� команд та callback запитів ---
 
 // Команда /start
 bot.onText(/\/start/, async (msg) => {
@@ -241,20 +266,20 @@ bot.onText(/\/orders/, async (msg) => {
 
   allOrders.slice(-10).forEach((order, index) => {
     // Показуємо останні 10 замовлень
-    ordersMessage += `🆔 #${order.orderId}\n`
+    ordersMessage += `🆔 #${order.id}\n`
     ordersMessage += `👤 ${order.customerData.fullName}\n`
     ordersMessage += `👨‍💻 Username: ${order.customerData.username || "не вказано"}\n`
     ordersMessage += `📞 ${order.customerData.phone}\n`
     ordersMessage += `📧 ${order.customerData.email}\n`
     ordersMessage += `🏠 ${order.customerData.address}, ${order.customerData.city}\n`
     ordersMessage += `💰 Сума: ${order.total > 0 ? `$${order.total}` : "Уточнюйте"}\n`
-    ordersMessage += `📅 ${new Date(order.timestamp).toLocaleString("uk-UA")}\n`
+    ordersMessage += `📅 ${new Date(order.date).toLocaleString("uk-UA")}\n`
     ordersMessage += `📦 Товари:\n`
 
     // Детальна інформація про кожен товар
     order.items.forEach((item, itemIndex) => {
       ordersMessage += `   ${itemIndex + 1}. ${item.name}\n`
-      ordersMessage += `      🎨 ${colorEmojis[item.color]}\n`
+      ordersMessage += `      🎨 ${item.colorDisplay}\n`
       ordersMessage += `      💰 ${typeof item.price === "number" ? `$${item.price}` : "Ціну уточнюйте"}\n`
     })
     ordersMessage += `\n`
@@ -691,9 +716,28 @@ async function removeFromCart(chatId, userId, itemIndex) {
 
     try {
       await bot.sendMessage(chatId, `✅ ${removedItem.name} видалено з кошика`)
-      await showCart(chatId, userId) // Оновлюємо кошик після видалення
+      if (cart.length > 0) {
+        await showCart(chatId, userId)
+      } else {
+        // Если корзина пуста, показываем сообщение о пустой корзине
+        await bot.sendMessage(chatId, "🛒 Ваш кошик тепер порожній", {
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: "🛍️ Перейти до каталогу", callback_data: "catalog" }],
+              [{ text: "🏠 Головне меню", callback_data: "back_to_main" }],
+            ],
+          },
+        })
+      }
     } catch (error) {
       console.error("Error removing from cart or showing updated cart:", error)
+    }
+  } else {
+    try {
+      await bot.sendMessage(chatId, "❌ Помилка: товар не знайдено в кошику")
+      await showCart(chatId, userId)
+    } catch (error) {
+      console.error("Error sending error message:", error)
     }
   }
 }
@@ -782,50 +826,30 @@ async function finalizeOrder(chatId, userId, orderData) {
   }
 
   const order = {
-    orderId: orderId,
-    timestamp: new Date().toISOString(),
+    id: orderId,
+    userId: userId,
+    chatId: chatId,
+    date: new Date().toISOString(),
     customerData: {
       fullName: orderData.fullName,
       email: orderData.email,
       phone: orderData.phone,
       address: orderData.address,
       city: orderData.city,
-      userId: userId,
-      chatId: chatId,
-      username: username,
     },
-    items: orderData.cart,
-    total: total,
+    items: orderData.cart.map((item) => ({
+      productId: item.productId,
+      name: item.name,
+      color: item.color,
+      colorDisplay: colorEmojis[item.color],
+      price: item.price,
+    })),
+    total: total > 0 ? total : "Уточнюйте",
+    status: "новий",
   }
 
   allOrders.push(order)
-  console.log(`New order saved: #${orderId} from ${orderData.fullName}`)
-
-  if (ADMIN_ID && ADMIN_ID !== 123456789) {
-    // Перевіряємо, чи встановлений реальний ID адміністратора
-    try {
-      let adminNotification = `🔔 НОВЕ ЗАМОВЛЕННЯ #${orderId}\n\n`
-      adminNotification += `👤 ${orderData.fullName}\n`
-      adminNotification += `👨‍💻 Username: @${username}\n`
-      adminNotification += `📞 ${orderData.phone}\n`
-      adminNotification += `📧 ${orderData.email}\n`
-      adminNotification += `🏠 ${orderData.address}, ${orderData.city}\n`
-      adminNotification += `💰 Сума: ${total > 0 ? `$${total}` : "Уточнюйте"}\n\n`
-      adminNotification += `📦 Товари:\n`
-      orderData.cart.forEach((item, index) => {
-        adminNotification += `${index + 1}. ${item.name}\n`
-        adminNotification += `   🎨 ${colorEmojis[item.color]}\n`
-        adminNotification += `   💰 ${typeof item.price === "number" ? `$${item.price}` : "Ціну уточнюйте"}\n`
-      })
-
-      await bot.sendMessage(ADMIN_ID, adminNotification)
-    } catch (error) {
-      console.error("Error sending admin notification:", error)
-    }
-  }
-
-  // Очищаємо кошик після оформлення
-  userCarts.delete(userId)
+  saveOrders(allOrders)
 
   const options = {
     reply_markup: {
@@ -838,6 +862,16 @@ async function finalizeOrder(chatId, userId, orderData) {
 
   try {
     await bot.sendMessage(chatId, orderSummary, options)
+
+    // Відправляємо повідомлення адміністратору про нове замовлення
+    if (ADMIN_ID) {
+      const adminMessage = `🔔 НОВЕ ЗАМОВЛЕННЯ #${orderId}\n\n${orderSummary}`
+      try {
+        await bot.sendMessage(ADMIN_ID, adminMessage)
+      } catch (adminError) {
+        console.error("Error sending admin notification:", adminError)
+      }
+    }
   } catch (error) {
     console.error("Error sending final order summary:", error)
   }
