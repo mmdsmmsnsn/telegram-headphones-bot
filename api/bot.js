@@ -269,20 +269,22 @@ bot.onText(/\/orders/, async (msg) => {
   let ordersMessage = `📋 Всі замовлення (${allOrders.length}):\n\n`
   allOrders.slice(-10).forEach((order, index) => {
     ordersMessage += `🆔 #${order.id}\n`
-    ordersMessage += `👤 ${order.customer_data.fullName}\n`
+    ordersMessage += `👤 ${order.customer_data?.fullName || order.customerData?.fullName || "не вказано"}\n`
     ordersMessage += `👨‍💻 Username: ${order.username || "не вказано"}\n`
-    ordersMessage += `📞 ${order.customer_data.phone}\n`
-    ordersMessage += `📧 ${order.customer_data.email}\n`
-    ordersMessage += `🏠 ${order.customer_data.address}, ${order.customer_data.city}\n`
+    ordersMessage += `📞 ${order.customer_data?.phone || order.customerData?.phone || "не вказано"}\n`
+    ordersMessage += `📧 ${order.customer_data?.email || order.customerData?.email || "не вказано"}\n`
+    ordersMessage += `🏠 ${order.customer_data?.address || order.customerData?.address || "не вказано"}, ${order.customer_data?.city || order.customerData?.city || "не вказано"}\n`
     ordersMessage += `💰 Сума: ${order.total > 0 ? `$${order.total}` : "Уточнюйте"}\n`
     ordersMessage += `📅 ${new Date(order.date).toLocaleString("uk-UA")}\n`
     ordersMessage += `📦 Товари:\n`
 
-    order.items.forEach((item, itemIndex) => {
-      ordersMessage += `   ${itemIndex + 1}. ${item.name}\n`
-      ordersMessage += `      🎨 ${item.colorDisplay}\n`
-      ordersMessage += `      💰 ${typeof item.price === "number" ? `$${item.price}` : "Ціну уточнюйте"}\n`
-    })
+    if (order.items && Array.isArray(order.items)) {
+      order.items.forEach((item, itemIndex) => {
+        ordersMessage += `   ${itemIndex + 1}. ${item.name}\n`
+        ordersMessage += `      🎨 ${item.colorDisplay}\n`
+        ordersMessage += `      💰 ${typeof item.price === "number" ? `$${item.price}` : "Ціну уточнюйте"}\n`
+      })
+    }
     ordersMessage += `\n`
   })
 
@@ -318,7 +320,6 @@ async function finalizeOrder(chatId, userId, orderData) {
   orderSummary += `🆔 Номер замовлення: #${orderId}\n\n`
   orderSummary += `Дякуємо за ваше замовлення! Ми зв'яжемося з вами найближчим часом.`
 
-  // Отримуємо інформацію про користувача для збереження username
   let username = "не вказано"
   try {
     const chatMember = await bot.getChatMember(chatId, userId)
@@ -358,7 +359,6 @@ async function finalizeOrder(chatId, userId, orderData) {
     return
   }
 
-  // Очищаємо кошик після успішного замовлення
   userCarts.delete(userId)
 
   const options = {
@@ -377,14 +377,16 @@ async function finalizeOrder(chatId, userId, orderData) {
       const channelMessage = `🔔 НОВЕ ЗАМОВЛЕННЯ #${orderId}\n\n${orderSummary}`
       try {
         await bot.sendMessage(ORDERS_CHANNEL_ID, channelMessage)
-        console.log("Order notification sent to channel")
+        console.log("Order notification sent to channel:", ORDERS_CHANNEL_ID)
       } catch (channelError) {
         console.error("Error sending channel notification:", channelError)
+        console.error("Channel ID:", ORDERS_CHANNEL_ID)
 
-        // Fallback: send to admin if channel fails
         if (ADMIN_ID) {
           try {
-            await bot.sendMessage(ADMIN_ID, channelMessage)
+            const adminMessage = `🔔 НОВЕ ЗАМОВЛЕННЯ #${orderId} (канал недоступний)\n\n${orderSummary}`
+            await bot.sendMessage(ADMIN_ID, adminMessage)
+            console.log("Fallback notification sent to admin")
           } catch (adminError) {
             console.error("Error sending admin notification:", adminError)
           }
