@@ -191,8 +191,8 @@ bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id
   // Очищаємо стан користувача при старті
   userStates.delete(chatId)
-  const welcomeMessage = `
-🎧 Ласкаво просимо до магазину навушників Soundcore!
+
+  const welcomeMessage = `🎧 Ласкаво просимо до магазину навушників Soundcore!
 
 Всі навушники нові, але упаковка відкрита. Гарантій немає.
 
@@ -226,7 +226,6 @@ bot.on("callback_query", async (callbackQuery) => {
 
   await bot.answerCallbackQuery(callbackQuery.id) // Відповідаємо негайно
   console.log("DEBUG: Answered callback query:", callbackQuery.id) // Додаємо лог для підтвердження
-
   console.log("Received callback query data:", data)
 
   try {
@@ -297,7 +296,6 @@ bot.on("message", async (msg) => {
   }
 
   const currentState = userStates.get(chatId)
-
   if (currentState) {
     try {
       switch (currentState.step) {
@@ -310,6 +308,7 @@ bot.on("message", async (msg) => {
             },
           })
           break
+
         case "awaiting_email":
           if (!/\S+@\S+\.\S+/.test(text)) {
             await bot.sendMessage(chatId, "Будь ласка, введіть коректну електронну пошту.")
@@ -323,6 +322,7 @@ bot.on("message", async (msg) => {
             },
           })
           break
+
         case "awaiting_phone":
           if (!/^\+?\d{10,15}$/.test(text)) {
             await bot.sendMessage(chatId, "Будь ласка, введіть коректний номер телефону.")
@@ -336,6 +336,7 @@ bot.on("message", async (msg) => {
             },
           })
           break
+
         case "awaiting_address":
           currentState.orderData.address = text
           currentState.step = "awaiting_city"
@@ -345,6 +346,7 @@ bot.on("message", async (msg) => {
             },
           })
           break
+
         case "awaiting_city":
           currentState.orderData.city = text
           userStates.delete(chatId) // Завершуємо стан
@@ -366,8 +368,7 @@ bot.on("message", async (msg) => {
 
 // Показати головне меню
 async function showMainMenu(chatId) {
-  const welcomeMessage = `
-🎧 Ласкаво просимо до магазину навушників Soundcore!
+  const welcomeMessage = `🎧 Ласкаво просимо до магазину навушників Soundcore!
 
 Всі навушники нові, але упаковка відкрита. Гарантій немає.
 
@@ -424,10 +425,10 @@ async function showProduct(chatId, productId, userId) {
 
   const currentWebhookUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://example.com"
 
-  const productMessage = `
-🎧 ${product.name}
+  const productMessage = `🎧 ${product.name}
 
 ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰 Ціна: Уточнюйте"}
+
 📝 ${product.description}
 
 🎨 Доступні кольори:
@@ -455,6 +456,7 @@ ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰
         media: `${currentWebhookUrl}${imgPath}`,
         caption: index === 0 ? productMessage : undefined, // Опис тільки для першого фото в альбомі
       }))
+
       await bot.sendMediaGroup(chatId, media, { reply_markup: options.reply_markup })
     } else {
       // Запасний варіант, якщо images не є масивом або порожній
@@ -475,34 +477,47 @@ ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰
   }
 }
 
-// Вибір кольору
+// Вибір кольору - тепер автоматично додає до кошика
 async function selectColor(chatId, userId, productId, color) {
   const product = headphones[productId]
   if (!product) return
 
-  const confirmMessage = `
-✅ Ви обрали:
-🎧 ${product.name}
-🎨 Колір: ${colorEmojis[color]}
-${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰 Ціна: Уточнюйте"}
+  // Автоматично додаємо товар до кошика
+  if (!userCarts.has(userId)) {
+    userCarts.set(userId, [])
+  }
 
-Додати до кошика?
+  const cart = userCarts.get(userId)
+  cart.push({
+    productId,
+    name: product.name,
+    color,
+    price: product.price, // Зберігаємо ціну як є (рядок або число)
+  })
+
+  const successMessage = `✅ Товар автоматично додано до кошика!
+
+🎧 ${product.name}
+🎨 ${colorEmojis[color]}
+${typeof product.price === "number" ? `💰 $${product.price}` : "💰 Ціна: Уточнюйте"}
+
+Що бажаєте зробити далі?
   `
 
   const options = {
     reply_markup: {
       inline_keyboard: [
-        [{ text: "🛒 Додати до кошика", callback_data: `add_to_cart_${productId}_${color}` }],
-        [{ text: "🎨 Обрати інший колір", callback_data: `product_${productId}` }],
-        [{ text: "⬅️ Назад до каталогу", callback_data: "back_to_catalog" }],
+        [{ text: "🛒 Переглянути кошик", callback_data: "cart" }],
+        [{ text: "🛍️ Продовжити покупки", callback_data: "catalog" }],
+        [{ text: "💳 Оформити замовлення", callback_data: "checkout" }],
       ],
     },
   }
 
   try {
-    await bot.sendMessage(chatId, confirmMessage, options)
+    await bot.sendMessage(chatId, successMessage, options)
   } catch (error) {
-    console.error("Error sending color selection message:", error)
+    console.error("Error sending auto add to cart message:", error)
   }
 }
 
@@ -523,8 +538,7 @@ async function addToCart(chatId, userId, productId, color) {
     price: product.price, // Зберігаємо ціну як є (рядок або число)
   })
 
-  const successMessage = `
-✅ Товар додано до кошика!
+  const successMessage = `✅ Товар додано до кошика!
 
 🎧 ${product.name}
 🎨 ${colorEmojis[color]}
@@ -556,6 +570,7 @@ async function showCart(chatId, userId) {
 
   if (cart.length === 0) {
     const emptyMessage = "🛒 Ваш кошик порожній\n\nПерейдіть до каталогу для вибору товарів."
+
     const options = {
       reply_markup: {
         inline_keyboard: [
@@ -564,6 +579,7 @@ async function showCart(chatId, userId) {
         ],
       },
     }
+
     try {
       await bot.sendMessage(chatId, emptyMessage, options)
     } catch (error) {
@@ -614,6 +630,7 @@ async function removeFromCart(chatId, userId, itemIndex) {
 
   if (itemIndex >= 0 && itemIndex < cart.length) {
     const removedItem = cart.splice(itemIndex, 1)[0]
+
     try {
       await bot.sendMessage(chatId, `✅ ${removedItem.name} видалено з кошика`)
       await showCart(chatId, userId) // Оновлюємо кошик після видалення
@@ -637,6 +654,7 @@ async function startCheckout(chatId, userId) {
   }
 
   userStates.set(chatId, { step: "awaiting_name", orderData: { cart: cart } })
+
   try {
     await bot.sendMessage(chatId, "Будь ласка, введіть ваше повне ім'я (ПІБ):", {
       reply_markup: {
@@ -651,6 +669,7 @@ async function startCheckout(chatId, userId) {
 // Скасування замовлення
 async function cancelOrder(chatId) {
   userStates.delete(chatId)
+
   try {
     await bot.sendMessage(
       chatId,
@@ -679,6 +698,7 @@ async function finalizeOrder(chatId, userId, orderData) {
     orderSummary += `${index + 1}. ${item.name}\n`
     orderSummary += `   🎨 ${colorEmojis[item.color]}\n`
     orderSummary += `   💰 ${typeof item.price === "number" ? `$${item.price}` : "Ціну уточнюйте"}\n\n`
+
     if (typeof item.price === "number") {
       total += item.price
     }
