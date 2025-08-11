@@ -1,6 +1,18 @@
 import dotenv from "dotenv"
 dotenv.config({ path: ".env.local" })
 
+console.log("Загружаем переменные окружения из .env.local...")
+const result = dotenv.config({ path: ".env.local" })
+
+if (result.error) {
+  console.error("Ошибка загрузки .env.local:", result.error)
+} else {
+  console.log("✅ .env.local успешно загружен")
+}
+
+console.log("Проверяем переменную BLOB_READ_WRITE_TOKEN...")
+console.log("Значение токена:", process.env.BLOB_READ_WRITE_TOKEN ? "найден" : "не найден")
+
 import { put } from "@vercel/blob"
 import fs from "fs"
 import path from "path"
@@ -9,6 +21,7 @@ const BLOB_READ_WRITE_TOKEN = process.env.BLOB_READ_WRITE_TOKEN
 
 if (!BLOB_READ_WRITE_TOKEN) {
   console.error("BLOB_READ_WRITE_TOKEN не найден в переменных окружения")
+  console.error("Убедитесь, что файл .env.local существует в корневой папке проекта")
   process.exit(1)
 }
 
