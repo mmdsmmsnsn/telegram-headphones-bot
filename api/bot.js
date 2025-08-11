@@ -243,12 +243,21 @@ bot.onText(/\/orders/, async (msg) => {
     // Показуємо останні 10 замовлень
     ordersMessage += `🆔 #${order.orderId}\n`
     ordersMessage += `👤 ${order.customerData.fullName}\n`
+    ordersMessage += `👨‍💻 Username: ${order.customerData.username || "не вказано"}\n`
     ordersMessage += `📞 ${order.customerData.phone}\n`
     ordersMessage += `📧 ${order.customerData.email}\n`
     ordersMessage += `🏠 ${order.customerData.address}, ${order.customerData.city}\n`
     ordersMessage += `💰 Сума: ${order.total > 0 ? `$${order.total}` : "Уточнюйте"}\n`
     ordersMessage += `📅 ${new Date(order.timestamp).toLocaleString("uk-UA")}\n`
-    ordersMessage += `📦 Товари: ${order.items.length} шт.\n\n`
+    ordersMessage += `📦 Товари:\n`
+
+    // Детальна інформація про кожен товар
+    order.items.forEach((item, itemIndex) => {
+      ordersMessage += `   ${itemIndex + 1}. ${item.name}\n`
+      ordersMessage += `      🎨 ${colorEmojis[item.color]}\n`
+      ordersMessage += `      💰 ${typeof item.price === "number" ? `$${item.price}` : "Ціну уточнюйте"}\n`
+    })
+    ordersMessage += `\n`
   })
 
   try {
@@ -266,7 +275,6 @@ bot.on("callback_query", async (callbackQuery) => {
   const data = callbackQuery.data
   const userId = callbackQuery.from.id
 
-  await bot.answerCallbackQuery(callbackQuery.id) // Відповідаємо негайно
   console.log("DEBUG: Answered callback query:", callbackQuery.id) // Додаємо лог для підтвердження
   console.log("Received callback query data:", data)
 
@@ -311,7 +319,7 @@ bot.on("callback_query", async (callbackQuery) => {
       await cancelOrder(chatId)
     }
 
-    // await bot.answerCallbackQuery(callbackQuery.id)
+    await bot.answerCallbackQuery(callbackQuery.id)
   } catch (error) {
     console.error("Error handling callback:", error)
     await bot.answerCallbackQuery(callbackQuery.id, { text: "Виникла помилка" })
@@ -503,7 +511,11 @@ ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰
         caption: index === 0 ? productMessage : undefined, // Опис тільки для першого фото в альбомі
       }))
 
-      await bot.sendMediaGroup(chatId, media, { reply_markup: options.reply_markup })
+      // Відправляємо медіа групу
+      await bot.sendMediaGroup(chatId, media)
+
+      // Відправляємо окреме повідомлення з кнопками, оскільки sendMediaGroup не підтримує reply_markup
+      await bot.sendMessage(chatId, "Оберіть колір:", options)
     } else {
       // Запасний варіант, якщо images не є масивом або порожній
       const imageUrl = `${currentWebhookUrl}/placeholder.svg?height=300&width=300&text=No+Image`
@@ -760,6 +772,15 @@ async function finalizeOrder(chatId, userId, orderData) {
   orderSummary += `🆔 Номер замовлення: #${orderId}\n\n`
   orderSummary += `Дякуємо за ваше замовлення! Ми зв'яжемося з вами найближчим часом.`
 
+  // Отримуємо інформацію про користувача для збереження username
+  let username = "не вказано"
+  try {
+    const chatMember = await bot.getChatMember(chatId, userId)
+    username = chatMember.user.username || "не вказано"
+  } catch (error) {
+    console.log("Could not get username:", error.message)
+  }
+
   const order = {
     orderId: orderId,
     timestamp: new Date().toISOString(),
@@ -771,6 +792,7 @@ async function finalizeOrder(chatId, userId, orderData) {
       city: orderData.city,
       userId: userId,
       chatId: chatId,
+      username: username,
     },
     items: orderData.cart,
     total: total,
@@ -784,13 +806,16 @@ async function finalizeOrder(chatId, userId, orderData) {
     try {
       let adminNotification = `🔔 НОВЕ ЗАМОВЛЕННЯ #${orderId}\n\n`
       adminNotification += `👤 ${orderData.fullName}\n`
+      adminNotification += `👨‍💻 Username: @${username}\n`
       adminNotification += `📞 ${orderData.phone}\n`
       adminNotification += `📧 ${orderData.email}\n`
       adminNotification += `🏠 ${orderData.address}, ${orderData.city}\n`
       adminNotification += `💰 Сума: ${total > 0 ? `$${total}` : "Уточнюйте"}\n\n`
       adminNotification += `📦 Товари:\n`
       orderData.cart.forEach((item, index) => {
-        adminNotification += `${index + 1}. ${item.name} (${colorEmojis[item.color]})\n`
+        adminNotification += `${index + 1}. ${item.name}\n`
+        adminNotification += `   🎨 ${colorEmojis[item.color]}\n`
+        adminNotification += `   💰 ${typeof item.price === "number" ? `$${item.price}` : "Ціну уточнюйте"}\n`
       })
 
       await bot.sendMessage(ADMIN_ID, adminNotification)
