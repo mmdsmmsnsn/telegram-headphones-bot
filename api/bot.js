@@ -370,7 +370,7 @@ bot.on("callback_query", async (callbackQuery) => {
   }
 })
 
-// Обробка текстових повідомлень (для збору даних замовлення)
+// Обробка текстов��х повідомлень (для збору даних замовлення)
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id
   const userId = msg.from.id
@@ -537,14 +537,11 @@ ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰
 
   try {
     if (Array.isArray(product.images) && product.images.length > 0) {
-      const media = product.images.map((imgPath, index) => ({
-        type: "photo",
-        media: `${currentWebhookUrl}${imgPath}`,
-        caption: index === 0 ? productMessage : undefined,
-      }))
-
-      await bot.sendMediaGroup(chatId, media)
-      await bot.sendMessage(chatId, "Оберіть колір:", options)
+      const firstImageUrl = `${currentWebhookUrl}${product.images[0]}`
+      await bot.sendPhoto(chatId, firstImageUrl, {
+        caption: productMessage,
+        reply_markup: options.reply_markup,
+      })
     } else {
       const imageUrl = `${currentWebhookUrl}/placeholder.svg?height=300&width=300&text=No+Image`
       await bot.sendPhoto(chatId, imageUrl, {
@@ -625,7 +622,7 @@ async function addToCart(chatId, userId, productId, color) {
 
 🎧 ${product.name}
 🎨 ${colorEmojis[color]}
-${typeof product.price === "number" ? `💰 $${product.price}` : "💰 Ціну уточнюйте"}
+${typeof product.price === "number" ? `$${product.price}` : "💰 Ціну уточнюйте"}
 
 Що бажаєте зробити далі?`
 
