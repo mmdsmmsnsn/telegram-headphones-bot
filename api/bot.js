@@ -247,7 +247,11 @@ bot.on("callback_query", async (callbackQuery) => {
       const productId = data.replace("product_", "")
       await showProduct(chatId, productId, userId)
     } else if (data.startsWith("color_")) {
-      const [, productId, color] = data.split("_")
+      const colorPrefix = "color_"
+      const withoutPrefix = data.substring(colorPrefix.length)
+      const lastUnderscoreIndex = withoutPrefix.lastIndexOf("_")
+      const productId = withoutPrefix.substring(0, lastUnderscoreIndex)
+      const color = withoutPrefix.substring(lastUnderscoreIndex + 1)
       await selectColor(chatId, userId, productId, color)
     } else if (data.startsWith("add_to_cart_")) {
       const [, , , productId, color] = data.split("_")
@@ -542,7 +546,7 @@ async function addToCart(chatId, userId, productId, color) {
 
 🎧 ${product.name}
 🎨 ${colorEmojis[color]}
-${typeof product.price === "number" ? `💰 $${product.price}` : "💰 Ціна: Уточнюйте"}
+${typeof product.price === "number" ? `💰 $${product.price}` : "💰 Ціну уточнюйте"}
 
 Що бажаєте зробити далі?
   `
