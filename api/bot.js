@@ -1,6 +1,7 @@
 console.log("DEBUG: Bot file execution started at top of file!")
 import TelegramBot from "node-telegram-bot-api"
 import express from "express"
+import fs from "fs"
 import { createClient } from "@supabase/supabase-js"
 
 console.log("DEBUG: Imports completed.")
@@ -9,13 +10,18 @@ const token = process.env.TELEGRAM_BOT_TOKEN
 const app = express()
 const port = process.env.PORT || 3000
 
+console.log("DEBUG: Variables initialized. Token present:", !!token)
+
 const supabaseUrl = process.env.SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_ANON_KEY
-const supabase = createClient(supabaseUrl, supabaseKey)
+let supabase = null
 
-const ORDERS_CHANNEL_ID = process.env.ORDERS_CHANNEL_ID || "-1002534353239"
-
-console.log("DEBUG: Variables initialized. Token present:", !!token)
+if (supabaseUrl && supabaseKey) {
+  supabase = createClient(supabaseUrl, supabaseKey)
+  console.log("DEBUG: Supabase client initialized")
+} else {
+  console.log("DEBUG: Supabase not configured, using JSON file storage")
+}
 
 const bot = new TelegramBot(token)
 app.use(express.json())
@@ -183,25 +189,33 @@ const userCarts = new Map()
 // Зберігання станів користувачів для процесу замовлення
 const userStates = new Map()
 
-// Функция для загрузки заказов из Supabase
-async function loadOrders() {
+const ORDERS_FILE = "orders.json"
+
+// Функция для загрузки заказов из файла
+function loadOrders() {
   try {
-    const { data, error } = await supabase.from("orders").select("*").order("date", { ascending: false })
-
-    if (error) {
-      console.error("Error loading orders from Supabase:", error)
-      return []
+    if (fs.existsSync(ORDERS_FILE)) {
+      const data = fs.readFileSync(ORDERS_FILE, "utf8")
+      return JSON.parse(data)
     }
-
-    return data || []
   } catch (error) {
     console.error("Error loading orders:", error)
-    return []
+  }
+  return []
+}
+
+// Функция для сохранения заказов в файл
+function saveOrders(orders) {
+  try {
+    fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2))
+  } catch (error) {
+    console.error("Error saving orders:", error)
   }
 }
 
-// Функция для сохранения заказа в Supabase
-async function saveOrder(order) {
+async function saveOrderToSupabase(order) {
+  if (!supabase) return false
+
   try {
     const { data, error } = await supabase.from("orders").insert([order]).select()
 
@@ -213,13 +227,17 @@ async function saveOrder(order) {
     console.log("Order saved to Supabase:", data)
     return true
   } catch (error) {
-    console.error("Error saving order:", error)
+    console.error("Error saving order to Supabase:", error)
     return false
   }
 }
 
+const allOrders = loadOrders()
+
 // ID адміністратора
 const ADMIN_ID = process.env.ADMIN_ID || 6486502899
+
+const ORDERS_CHANNEL_ID = process.env.ORDERS_CHANNEL_ID || "-1002534353239"
 
 // --- Обробники команд та callback запитів ---
 // Команда /start
@@ -259,21 +277,21 @@ bot.onText(/\/orders/, async (msg) => {
     return
   }
 
-  const allOrders = await loadOrders()
+  const orders = loadOrders()
 
-  if (allOrders.length === 0) {
+  if (orders.length === 0) {
     await bot.sendMessage(chatId, "📋 Замовлень поки немає.")
     return
   }
 
-  let ordersMessage = `📋 Всі замовлення (${allOrders.length}):\n\n`
-  allOrders.slice(-10).forEach((order, index) => {
+  let ordersMessage = `📋 Всі замовлення (${orders.length}):\n\n`
+  orders.slice(-10).forEach((order, index) => {
     ordersMessage += `🆔 #${order.id}\n`
-    ordersMessage += `👤 ${order.customer_data?.fullName || order.customerData?.fullName || "не вказано"}\n`
-    ordersMessage += `👨‍💻 Username: ${order.username || "не вказано"}\n`
-    ordersMessage += `📞 ${order.customer_data?.phone || order.customerData?.phone || "не вказано"}\n`
-    ordersMessage += `📧 ${order.customer_data?.email || order.customerData?.email || "не вказано"}\n`
-    ordersMessage += `🏠 ${order.customer_data?.address || order.customerData?.address || "не вказано"}, ${order.customer_data?.city || order.customerData?.city || "не вказано"}\n`
+    ordersMessage += `👤 ${order.customerData.fullName}\n`
+    ordersMessage += `👨‍💻 Username: ${order.customerData.username || "не вказано"}\n`
+    ordersMessage += `📞 ${order.customerData.phone}\n`
+    ordersMessage += `📧 ${order.customerData.email}\n`
+    ordersMessage += `🏠 ${order.customerData.address}, ${order.customerData.city}\n`
     ordersMessage += `💰 Сума: ${order.total > 0 ? `$${order.total}` : "Уточнюйте"}\n`
     ordersMessage += `📅 ${new Date(order.date).toLocaleString("uk-UA")}\n`
     ordersMessage += `📦 Товари:\n`
@@ -294,109 +312,6 @@ bot.onText(/\/orders/, async (msg) => {
     console.error("Error sending orders list:", error)
   }
 })
-
-// Завершення замовлення після збору всіх данних
-async function finalizeOrder(chatId, userId, orderData) {
-  let orderSummary = "📋 Ваше замовлення успішно оформлено!\n\n"
-  let total = 0
-  orderSummary += "--- Товари в кошику ---\n"
-  orderData.cart.forEach((item, index) => {
-    orderSummary += `${index + 1}. ${item.name}\n`
-    orderSummary += `   🎨 ${colorEmojis[item.color]}\n`
-    orderSummary += `   💰 ${typeof item.price === "number" ? `$${item.price}` : "Ціну уточнюйте"}\n\n`
-    if (typeof item.price === "number") {
-      total += item.price
-    }
-  })
-
-  orderSummary += `--- Дані покупця ---\n`
-  orderSummary += `👤 ПІБ: ${orderData.fullName}\n`
-  orderSummary += `📧 Email: ${orderData.email}\n`
-  orderSummary += `📞 Телефон: ${orderData.phone}\n`
-  orderSummary += `🏠 Адреса: ${orderData.address}, ${orderData.city}\n\n`
-  orderSummary += `💳 Загальна сума: ${total > 0 ? `$${total}` : "Уточнюйте"}\n\n`
-
-  const orderId = Date.now()
-  orderSummary += `🆔 Номер замовлення: #${orderId}\n\n`
-  orderSummary += `Дякуємо за ваше замовлення! Ми зв'яжемося з вами найближчим часом.`
-
-  let username = "не вказано"
-  try {
-    const chatMember = await bot.getChatMember(chatId, userId)
-    username = chatMember.user.username || "не вказано"
-  } catch (error) {
-    console.log("Could not get username:", error.message)
-  }
-
-  const order = {
-    id: orderId,
-    user_id: userId,
-    chat_id: chatId,
-    date: new Date().toISOString(),
-    customer_data: {
-      fullName: orderData.fullName,
-      email: orderData.email,
-      phone: orderData.phone,
-      address: orderData.address,
-      city: orderData.city,
-    },
-    items: orderData.cart.map((item) => ({
-      productId: item.productId,
-      name: item.name,
-      color: item.color,
-      colorDisplay: colorEmojis[item.color],
-      price: item.price,
-    })),
-    total: total > 0 ? total : "Уточнюйте",
-    status: "новий",
-    username: username,
-  }
-
-  const saved = await saveOrder(order)
-
-  if (!saved) {
-    await bot.sendMessage(chatId, "❌ Помилка при збереженні замовлення. Спробуйте ще раз.")
-    return
-  }
-
-  userCarts.delete(userId)
-
-  const options = {
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: "🛍️ Нове замовлення", callback_data: "catalog" }],
-        [{ text: "🏠 Головне меню", callback_data: "back_to_main" }],
-      ],
-    },
-  }
-
-  try {
-    await bot.sendMessage(chatId, orderSummary, options)
-
-    if (ORDERS_CHANNEL_ID) {
-      const channelMessage = `🔔 НОВЕ ЗАМОВЛЕННЯ #${orderId}\n\n${orderSummary}`
-      try {
-        await bot.sendMessage(ORDERS_CHANNEL_ID, channelMessage)
-        console.log("Order notification sent to channel:", ORDERS_CHANNEL_ID)
-      } catch (channelError) {
-        console.error("Error sending channel notification:", channelError)
-        console.error("Channel ID:", ORDERS_CHANNEL_ID)
-
-        if (ADMIN_ID) {
-          try {
-            const adminMessage = `🔔 НОВЕ ЗАМОВЛЕННЯ #${orderId} (канал недоступний)\n\n${orderSummary}`
-            await bot.sendMessage(ADMIN_ID, adminMessage)
-            console.log("Fallback notification sent to admin")
-          } catch (adminError) {
-            console.error("Error sending admin notification:", adminError)
-          }
-        }
-      }
-    }
-  } catch (error) {
-    console.error("Error sending final order summary:", error)
-  }
-}
 
 // Обробка callback запитів
 bot.on("callback_query", async (callbackQuery) => {
@@ -888,5 +803,103 @@ async function showAbout(chatId) {
   }
 }
 
-// Експортуємо 'app' для Vercel Serverless Functions
+// Завершення замовлення після збору всіх данних
+async function finalizeOrder(chatId, userId, orderData) {
+  let orderSummary = "📋 Ваше замовлення успішно оформлено!\n\n"
+  let total = 0
+  orderSummary += "--- Товари в кошику ---\n"
+  orderData.cart.forEach((item, index) => {
+    orderSummary += `${index + 1}. ${item.name}\n`
+    orderSummary += `   🎨 ${colorEmojis[item.color]}\n`
+    orderSummary += `   💰 ${typeof item.price === "number" ? `$${item.price}` : "Ціну уточнюйте"}\n\n`
+    if (typeof item.price === "number") {
+      total += item.price
+    }
+  })
+
+  orderSummary += `--- Дані покупця ---\n`
+  orderSummary += `👤 ПІБ: ${orderData.fullName}\n`
+  orderSummary += `📧 Email: ${orderData.email}\n`
+  orderSummary += `📞 Телефон: ${orderData.phone}\n`
+  orderSummary += `🏠 Адреса: ${orderData.address}, ${orderData.city}\n\n`
+  orderSummary += `💳 Загальна сума: ${total > 0 ? `$${total}` : "Уточнюйте"}\n\n`
+
+  const orderId = Date.now()
+  orderSummary += `🆔 Номер замовлення: #${orderId}\n\n`
+  orderSummary += `Дякуємо за ваше замовлення! Ми зв'яжемося з вами найближчим часом.`
+
+  let username = "не вказано"
+  try {
+    const chatMember = await bot.getChatMember(chatId, userId)
+    username = chatMember.user.username || "не вказано"
+  } catch (error) {
+    console.log("Could not get username:", error.message)
+  }
+
+  const order = {
+    id: orderId,
+    userId: userId,
+    chatId: chatId,
+    date: new Date().toISOString(),
+    customerData: {
+      fullName: orderData.fullName,
+      email: orderData.email,
+      phone: orderData.phone,
+      address: orderData.address,
+      city: orderData.city,
+      username: username,
+    },
+    items: orderData.cart.map((item) => ({
+      productId: item.productId,
+      name: item.name,
+      color: item.color,
+      colorDisplay: colorEmojis[item.color],
+      price: item.price,
+    })),
+    total: total > 0 ? total : "Уточнюйте",
+    status: "новий",
+  }
+
+  allOrders.push(order)
+  saveOrders(allOrders)
+
+  if (supabase) {
+    await saveOrderToSupabase(order)
+  }
+
+  userCarts.delete(userId)
+
+  const options = {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: "🛍️ Нове замовлення", callback_data: "catalog" }],
+        [{ text: "🏠 Головне меню", callback_data: "back_to_main" }],
+      ],
+    },
+  }
+
+  try {
+    await bot.sendMessage(chatId, orderSummary, options)
+
+    if (ORDERS_CHANNEL_ID) {
+      const channelMessage = `🔔 НОВЕ ЗАМОВЛЕННЯ #${orderId}\n\n${orderSummary}`
+      try {
+        await bot.sendMessage(ORDERS_CHANNEL_ID, channelMessage)
+      } catch (channelError) {
+        console.error("Error sending channel notification:", channelError)
+        if (ADMIN_ID) {
+          try {
+            const adminMessage = `🔔 НОВЕ ЗАМОВЛЕННЯ #${orderId}\n\n${orderSummary}`
+            await bot.sendMessage(ADMIN_ID, adminMessage)
+          } catch (adminError) {
+            console.error("Error sending admin notification:", adminError)
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error sending final order summary:", error)
+  }
+}
+
 export default app
