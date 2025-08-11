@@ -184,6 +184,11 @@ const userCarts = new Map()
 // Зберігання станів користувачів для процесу замовлення
 const userStates = new Map() // userId -> { step: 'awaiting_name', orderData: {} }
 
+const allOrders = [] // Масив для зберігання всіх замовлень
+
+// ID адміністратора (замініть на ваш Telegram ID)
+const ADMIN_ID = process.env.ADMIN_ID || 6486502899 // Замініть на ваш реальний Telegram ID
+
 // --- Обробники команд та callback запитів ---
 
 // Команда /start
@@ -213,6 +218,43 @@ bot.onText(/\/start/, async (msg) => {
     await bot.sendMessage(chatId, welcomeMessage, options)
   } catch (error) {
     console.error("Error sending /start message:", error)
+  }
+})
+
+// Команда для адміністратора для перегляду замовлень
+bot.onText(/\/orders/, async (msg) => {
+  const chatId = msg.chat.id
+  const userId = msg.from.id
+
+  // Перевіряємо, чи це адміністратор
+  if (userId !== ADMIN_ID) {
+    await bot.sendMessage(chatId, "❌ У вас немає доступу до цієї команди.")
+    return
+  }
+
+  if (allOrders.length === 0) {
+    await bot.sendMessage(chatId, "📋 Замовлень поки немає.")
+    return
+  }
+
+  let ordersMessage = `📋 Всі замовлення (${allOrders.length}):\n\n`
+
+  allOrders.slice(-10).forEach((order, index) => {
+    // Показуємо останні 10 замовлень
+    ordersMessage += `🆔 #${order.orderId}\n`
+    ordersMessage += `👤 ${order.customerData.fullName}\n`
+    ordersMessage += `📞 ${order.customerData.phone}\n`
+    ordersMessage += `📧 ${order.customerData.email}\n`
+    ordersMessage += `🏠 ${order.customerData.address}, ${order.customerData.city}\n`
+    ordersMessage += `💰 Сума: ${order.total > 0 ? `$${order.total}` : "Уточнюйте"}\n`
+    ordersMessage += `📅 ${new Date(order.timestamp).toLocaleString("uk-UA")}\n`
+    ordersMessage += `📦 Товари: ${order.items.length} шт.\n\n`
+  })
+
+  try {
+    await bot.sendMessage(chatId, ordersMessage)
+  } catch (error) {
+    console.error("Error sending orders list:", error)
   }
 })
 
@@ -503,7 +545,7 @@ async function selectColor(chatId, userId, productId, color) {
 
 🎧 ${product.name}
 🎨 ${colorEmojis[color]}
-${typeof product.price === "number" ? `💰 $${product.price}` : "💰 Ціна: Уточнюйте"}
+${typeof product.price === "number" ? `💰 $${product.price}` : "💰 Ціну уточнюйте"}
 
 Що бажаєте зробити далі?
   `
@@ -714,8 +756,48 @@ async function finalizeOrder(chatId, userId, orderData) {
   orderSummary += `📞 Телефон: ${orderData.phone}\n`
   orderSummary += `🏠 Адреса: ${orderData.address}, ${orderData.city}\n\n`
   orderSummary += `💳 Загальна сума: ${total > 0 ? `$${total}` : "Уточнюйте"}\n\n`
-  orderSummary += `🆔 Номер замовлення: #${Date.now()}\n\n`
+  const orderId = Date.now()
+  orderSummary += `🆔 Номер замовлення: #${orderId}\n\n`
   orderSummary += `Дякуємо за ваше замовлення! Ми зв'яжемося з вами найближчим часом.`
+
+  const order = {
+    orderId: orderId,
+    timestamp: new Date().toISOString(),
+    customerData: {
+      fullName: orderData.fullName,
+      email: orderData.email,
+      phone: orderData.phone,
+      address: orderData.address,
+      city: orderData.city,
+      userId: userId,
+      chatId: chatId,
+    },
+    items: orderData.cart,
+    total: total,
+  }
+
+  allOrders.push(order)
+  console.log(`New order saved: #${orderId} from ${orderData.fullName}`)
+
+  if (ADMIN_ID && ADMIN_ID !== 123456789) {
+    // Перевіряємо, чи встановлений реальний ID адміністратора
+    try {
+      let adminNotification = `🔔 НОВЕ ЗАМОВЛЕННЯ #${orderId}\n\n`
+      adminNotification += `👤 ${orderData.fullName}\n`
+      adminNotification += `📞 ${orderData.phone}\n`
+      adminNotification += `📧 ${orderData.email}\n`
+      adminNotification += `🏠 ${orderData.address}, ${orderData.city}\n`
+      adminNotification += `💰 Сума: ${total > 0 ? `$${total}` : "Уточнюйте"}\n\n`
+      adminNotification += `📦 Товари:\n`
+      orderData.cart.forEach((item, index) => {
+        adminNotification += `${index + 1}. ${item.name} (${colorEmojis[item.color]})\n`
+      })
+
+      await bot.sendMessage(ADMIN_ID, adminNotification)
+    } catch (error) {
+      console.error("Error sending admin notification:", error)
+    }
+  }
 
   // Очищаємо кошик після оформлення
   userCarts.delete(userId)
