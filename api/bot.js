@@ -878,4 +878,334 @@ async function finalizeOrder(chatId, userId, orderData) {
   }
 }
 
+// Added user tracking for mass notifications
+const allUsers = new Set() // Track all users who have interacted with the bot
+const userProfiles = new Map() // userId -> { chatId, username, firstName, lastName, lastActive }
+
+// Function to track user interactions
+function trackUser(msg) {
+  const userId = msg.from.id
+  const chatId = msg.chat.id
+
+  allUsers.add(userId)
+  userProfiles.set(userId, {
+    chatId: chatId,
+    username: msg.from.username || null,
+    firstName: msg.from.first_name || null,
+    lastName: msg.from.last_name || null,
+    lastActive: new Date().toISOString(),
+  })
+}
+
+bot.on("callback_query", async (callbackQuery) => {
+  const data = callbackQuery.data
+  const chatId = callbackQuery.message.chat.id
+  const userId = callbackQuery.from.id
+
+  // Track user interaction
+  trackUser(callbackQuery)
+
+  if (data === "admin_broadcast") {
+    await withTimeout(showBroadcastMenu(chatId, userId))
+  } else if (data === "broadcast_all") {
+    await withTimeout(startBroadcast(chatId, userId, "all"))
+  } else if (data === "broadcast_customers") {
+    await withTimeout(startBroadcast(chatId, userId, "customers"))
+  } else if (data === "preview_broadcast") {
+    await withTimeout(previewBroadcast(chatId, userId))
+  } else if (data === "send_broadcast") {
+    await withTimeout(executeBroadcast(chatId, userId))
+  } else if (data === "cancel_broadcast") {
+    await withTimeout(cancelBroadcast(chatId, userId))
+  }
+})
+
+bot.on("message", async (msg) => {
+  const chatId = msg.chat.id
+  const userId = msg.from.id
+  const text = msg.text
+
+  // Track user interaction
+  trackUser(msg)
+
+  const currentState = userStates.get(chatId)
+  if (currentState) {
+    try {
+      // Handle broadcast message input
+      if (currentState.step === "awaiting_broadcast_message") {
+        await handleBroadcastMessage(chatId, userId, text, currentState)
+        return
+      }
+
+      // Handle product management states
+      const handleProductInput = async (chatId, userId, text, currentState) => {
+        // Placeholder for product input handling logic
+      }
+
+      if (currentState.step.startsWith("editing_product_") || currentState.step.startsWith("adding_product_")) {
+        await handleProductInput(chatId, userId, text, currentState)
+        return
+      }
+    } catch (error) {
+      console.error("Error processing user input:", error)
+      await bot.sendMessage(chatId, "Виникла помилка при обробці ваших даних. Спробуйте ще раз або скасуйте операцію.")
+    }
+  }
+})
+
+// Added function to show broadcast menu
+async function showBroadcastMenu(chatId, userId) {
+  if (userId !== ADMIN_ID) {
+    await bot.sendMessage(chatId, "❌ У вас немає доступу до цієї функції.")
+    return
+  }
+
+  const totalUsers = allUsers.size
+  const customersCount = Array.from(allOrders).reduce((acc, order) => {
+    acc.add(order.userId)
+    return acc
+  }, new Set()).size
+
+  const broadcastMessage =
+    `📢 Масові повідомлення\n\n` +
+    `👥 Всього користувачів: ${totalUsers}\n` +
+    `🛒 Користувачів з замовленнями: ${customersCount}\n\n` +
+    `Оберіть аудиторію для розсилки:`
+
+  const options = {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: `👥 Всім користувачам (${totalUsers})`, callback_data: "broadcast_all" }],
+        [{ text: `🛒 Тільки клієнтам (${customersCount})`, callback_data: "broadcast_customers" }],
+        [{ text: "🔧 Адмін панель", callback_data: "admin_menu" }],
+      ],
+    },
+  }
+
+  try {
+    await bot.sendMessage(chatId, broadcastMessage, options)
+  } catch (error) {
+    console.error("Error sending broadcast menu:", error)
+  }
+}
+
+// Added function to start broadcast creation
+async function startBroadcast(chatId, userId, audience) {
+  if (userId !== ADMIN_ID) {
+    await bot.sendMessage(chatId, "❌ У вас немає доступу до цієї функції.")
+    return
+  }
+
+  let targetUsers = []
+  let audienceText = ""
+
+  if (audience === "all") {
+    targetUsers = Array.from(allUsers)
+    audienceText = "всім користувачам"
+  } else if (audience === "customers") {
+    const customerIds = new Set()
+    allOrders.forEach((order) => customerIds.add(order.userId))
+    targetUsers = Array.from(customerIds)
+    audienceText = "клієнтам з замовленнями"
+  }
+
+  userStates.set(chatId, {
+    step: "awaiting_broadcast_message",
+    broadcastData: {
+      audience: audience,
+      targetUsers: targetUsers,
+      audienceText: audienceText,
+      message: "",
+    },
+  })
+
+  const instructionMessage =
+    `📝 Створення розсилки\n\n` +
+    `🎯 Аудиторія: ${audienceText} (${targetUsers.length} осіб)\n\n` +
+    `Введіть текст повідомлення для розсилки:`
+
+  const options = {
+    reply_markup: {
+      inline_keyboard: [[{ text: "❌ Скасувати розсилку", callback_data: "cancel_broadcast" }]],
+    },
+  }
+
+  try {
+    await bot.sendMessage(chatId, instructionMessage, options)
+  } catch (error) {
+    console.error("Error starting broadcast:", error)
+  }
+}
+
+// Added function to handle broadcast message input
+async function handleBroadcastMessage(chatId, userId, text, currentState) {
+  if (userId !== ADMIN_ID) {
+    await bot.sendMessage(chatId, "❌ У вас немає доступу до цієї функції.")
+    return
+  }
+
+  currentState.broadcastData.message = text
+
+  await previewBroadcast(chatId, userId)
+}
+
+// Added function to preview broadcast
+async function previewBroadcast(chatId, userId) {
+  if (userId !== ADMIN_ID) {
+    await bot.sendMessage(chatId, "❌ У вас немає доступу до цієї функції.")
+    return
+  }
+
+  const currentState = userStates.get(chatId)
+  if (!currentState || !currentState.broadcastData) {
+    await bot.sendMessage(chatId, "❌ Помилка: дані розсилки не знайдено.")
+    return
+  }
+
+  const { audienceText, targetUsers, message } = currentState.broadcastData
+
+  const previewMessage =
+    `👀 Попередній перегляд розсилки\n\n` +
+    `🎯 Аудиторія: ${audienceText} (${targetUsers.length} осіб)\n\n` +
+    `📝 Повідомлення:\n` +
+    `━━━━━━━━━━━━━━━━━━━━\n` +
+    `${message}\n` +
+    `━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `Підтвердіть відправку:`
+
+  const options = {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: "✅ Відправити розсилку", callback_data: "send_broadcast" }],
+        [{ text: "✏️ Редагувати повідомлення", callback_data: `broadcast_${currentState.broadcastData.audience}` }],
+        [{ text: "❌ Скасувати", callback_data: "cancel_broadcast" }],
+      ],
+    },
+  }
+
+  try {
+    await bot.sendMessage(chatId, previewMessage, options)
+  } catch (error) {
+    console.error("Error sending broadcast preview:", error)
+  }
+}
+
+// Added function to execute broadcast
+async function executeBroadcast(chatId, userId) {
+  if (userId !== ADMIN_ID) {
+    await bot.sendMessage(chatId, "❌ У вас немає доступу до цієї функції.")
+    return
+  }
+
+  const currentState = userStates.get(chatId)
+  if (!currentState || !currentState.broadcastData) {
+    await bot.sendMessage(chatId, "❌ Помилка: дані розсилки не знайдено.")
+    return
+  }
+
+  const { targetUsers, message, audienceText } = currentState.broadcastData
+
+  // Start broadcasting
+  const statusMessage =
+    `🚀 Розсилка розпочата...\n\n` +
+    `👥 Цільова аудиторія: ${targetUsers.length} користувачів\n` +
+    `📤 Відправляємо повідомлення...`
+
+  try {
+    await bot.sendMessage(chatId, statusMessage)
+  } catch (error) {
+    console.error("Error sending broadcast start message:", error)
+  }
+
+  let successCount = 0
+  let failureCount = 0
+  const failures = []
+
+  // Send messages with delay to avoid rate limiting
+  for (let i = 0; i < targetUsers.length; i++) {
+    const targetUserId = targetUsers[i]
+    const userProfile = userProfiles.get(targetUserId)
+
+    if (!userProfile || !userProfile.chatId) {
+      failureCount++
+      failures.push(`User ${targetUserId}: No chat ID`)
+      continue
+    }
+
+    try {
+      await bot.sendMessage(userProfile.chatId, message)
+      successCount++
+
+      // Add delay to avoid rate limiting (30 messages per second limit)
+      if (i % 25 === 0 && i > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+      }
+    } catch (error) {
+      failureCount++
+      failures.push(`User ${targetUserId}: ${error.message}`)
+      console.error(`Failed to send broadcast to user ${targetUserId}:`, error)
+    }
+  }
+
+  // Send completion report
+  let reportMessage =
+    `📊 Розсилка завершена!\n\n` +
+    `✅ Успішно відправлено: ${successCount}\n` +
+    `❌ Помилок: ${failureCount}\n` +
+    `📈 Успішність: ${Math.round((successCount / targetUsers.length) * 100)}%`
+
+  if (failures.length > 0 && failures.length <= 10) {
+    reportMessage += `\n\n🔍 Деталі помилок:\n`
+    failures.slice(0, 10).forEach((failure) => {
+      reportMessage += `• ${failure}\n`
+    })
+  }
+
+  const options = {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: "📢 Нова розсилка", callback_data: "admin_broadcast" }],
+        [{ text: "🔧 Адмін панель", callback_data: "admin_menu" }],
+      ],
+    },
+  }
+
+  try {
+    await bot.sendMessage(chatId, reportMessage, options)
+  } catch (error) {
+    console.error("Error sending broadcast report:", error)
+  }
+
+  // Clear broadcast state
+  userStates.delete(chatId)
+}
+
+// Added function to cancel broadcast
+async function cancelBroadcast(chatId, userId) {
+  if (userId !== ADMIN_ID) {
+    await bot.sendMessage(chatId, "❌ У вас немає доступу до цієї функції.")
+    return
+  }
+
+  userStates.delete(chatId)
+
+  const cancelMessage = `❌ Розсилка скасована.`
+
+  const options = {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: "📢 Створити нову розсилку", callback_data: "admin_broadcast" }],
+        [{ text: "🔧 Адмін панель", callback_data: "admin_menu" }],
+      ],
+    },
+  }
+
+  try {
+    await bot.sendMessage(chatId, cancelMessage, options)
+  } catch (error) {
+    console.error("Error sending broadcast cancellation:", error)
+  }
+}
+
+
 export default app
