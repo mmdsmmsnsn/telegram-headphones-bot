@@ -3,15 +3,13 @@ console.log("DEBUG: Bot file execution started at top of file!")
 
 import TelegramBot from "node-telegram-bot-api"
 import express from "express"
-import { createClient } from "@supabase/supabase-js"
+import fs from "fs"
 
 console.log("DEBUG: Imports completed.")
 
 const token = process.env.TELEGRAM_BOT_TOKEN
 const app = express()
 const port = process.env.PORT || 3000
-
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY)
 
 console.log("DEBUG: Variables initialized. Token present:", !!token) // Перевіряємо, чи токен існує
 
@@ -187,6 +185,32 @@ const userCarts = new Map()
 // Зберігання станів користувачів для процесу замовлення
 const userStates = new Map() // userId -> { step: 'awaiting_name', orderData: {} }
 
+const ORDERS_FILE = "orders.json"
+
+// Функция для загрузки заказов из файла
+function loadOrders() {
+  try {
+    if (fs.existsSync(ORDERS_FILE)) {
+      const data = fs.readFileSync(ORDERS_FILE, "utf8")
+      return JSON.parse(data)
+    }
+  } catch (error) {
+    console.error("Error loading orders:", error)
+  }
+  return []
+}
+
+// Функция для сохранения заказов в файл
+function saveOrders(orders) {
+  try {
+    fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2))
+  } catch (error) {
+    console.error("Error saving orders:", error)
+  }
+}
+
+const allOrders = loadOrders()
+
 // ID адміністратора (замініть на ваш Telegram ID)
 const ADMIN_ID = process.env.ADMIN_ID || 6486502899 // Замініть на ваш реальний Telegram ID
 
@@ -228,22 +252,20 @@ bot.onText(/\/orders/, async (msg) => {
   const userId = msg.from.id
 
   // Перевіряємо, чи це адміністратор
-  if (userId != ADMIN_ID) {
+  if (userId !== ADMIN_ID) {
     await bot.sendMessage(chatId, "❌ У вас немає доступу до цієї команди.")
     return
   }
 
-  const orders = await getOrdersFromDatabase()
-
-  if (orders.length === 0) {
+  if (allOrders.length === 0) {
     await bot.sendMessage(chatId, "📋 Замовлень поки немає.")
     return
   }
 
-  let ordersMessage = `📋 Останні замовлення (${orders.length}):\n\n`
+  let ordersMessage = `📋 Всі замовлення (${allOrders.length}):\n\n`
 
-  orders.forEach((dbOrder) => {
-    const order = dbOrder.order_data
+  allOrders.slice(-10).forEach((order, index) => {
+    // Показуємо останні 10 замовлень
     ordersMessage += `🆔 #${order.id}\n`
     ordersMessage += `👤 ${order.customerData.fullName}\n`
     ordersMessage += `👨‍💻 Username: ${order.customerData.username || "не вказано"}\n`
@@ -251,7 +273,7 @@ bot.onText(/\/orders/, async (msg) => {
     ordersMessage += `📧 ${order.customerData.email}\n`
     ordersMessage += `🏠 ${order.customerData.address}, ${order.customerData.city}\n`
     ordersMessage += `💰 Сума: ${order.total > 0 ? `$${order.total}` : "Уточнюйте"}\n`
-    ordersMessage += `📅 ${new Date(dbOrder.created_at).toLocaleString("uk-UA")}\n`
+    ordersMessage += `📅 ${new Date(order.date).toLocaleString("uk-UA")}\n`
     ordersMessage += `📦 Товари:\n`
 
     // Детальна інформація про кожен товар
@@ -697,7 +719,7 @@ async function removeFromCart(chatId, userId, itemIndex) {
       if (cart.length > 0) {
         await showCart(chatId, userId)
       } else {
-        // Якщо корзина пуста, показуємо повідомлення про пусту корзину
+        // Если корзина пуста, показываем сообщение о пустой корзине
         await bot.sendMessage(chatId, "🛒 Ваш кошик тепер порожній", {
           reply_markup: {
             inline_keyboard: [
@@ -814,7 +836,6 @@ async function finalizeOrder(chatId, userId, orderData) {
       phone: orderData.phone,
       address: orderData.address,
       city: orderData.city,
-      username: username,
     },
     items: orderData.cart.map((item) => ({
       productId: item.productId,
@@ -827,13 +848,8 @@ async function finalizeOrder(chatId, userId, orderData) {
     status: "новий",
   }
 
-  const saved = await saveOrderToDatabase(order)
-  if (!saved) {
-    console.error("Failed to save order to database")
-  }
-
-  // Очищаємо кошик після оформлення
-  userCarts.delete(userId)
+  allOrders.push(order)
+  saveOrders(allOrders)
 
   const options = {
     reply_markup: {
@@ -876,57 +892,6 @@ async function showAbout(chatId) {
     await bot.sendMessage(chatId, aboutMessage, options)
   } catch (error) {
     console.error("Error sending about message:", error)
-  }
-}
-
-// Supabase functions
-async function saveOrderToDatabase(order) {
-  try {
-    const { data, error } = await supabase.from("orders").insert([
-      {
-        order_number: order.id.toString(),
-        user_id: order.userId,
-        username: order.customerData.username,
-        full_name: order.customerData.fullName,
-        email: order.customerData.email,
-        phone: order.customerData.phone,
-        address: order.customerData.address,
-        city: order.customerData.city,
-        total_amount: typeof order.total === "number" ? order.total : null,
-        order_data: order,
-      },
-    ])
-
-    if (error) {
-      console.error("Error saving order to database:", error)
-      return false
-    }
-
-    console.log("Order saved successfully:", data)
-    return true
-  } catch (error) {
-    console.error("Error saving order:", error)
-    return false
-  }
-}
-
-async function getOrdersFromDatabase() {
-  try {
-    const { data, error } = await supabase
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(10)
-
-    if (error) {
-      console.error("Error fetching orders:", error)
-      return []
-    }
-
-    return data || []
-  } catch (error) {
-    console.error("Error fetching orders:", error)
-    return []
   }
 }
 
