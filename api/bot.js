@@ -378,19 +378,6 @@ bot.on("message", async (msg) => {
       switch (currentState.step) {
         case "awaiting_name":
           currentState.orderData.fullName = text
-          currentState.step = "awaiting_email"
-          await bot.sendMessage(chatId, "Введіть вашу електронну пошту (email):", {
-            reply_markup: {
-              inline_keyboard: [[{ text: "❌ Скасувати замовлення", callback_data: "cancel_order" }]],
-            },
-          })
-          break
-        case "awaiting_email":
-          if (!/\S+@\S+\.\S+/.test(text)) {
-            await bot.sendMessage(chatId, "Будь ласка, введіть коректну електронну пошту.")
-            return
-          }
-          currentState.orderData.email = text
           currentState.step = "awaiting_phone"
           await bot.sendMessage(chatId, "Введіть ваш номер телефону (наприклад, +380XXXXXXXXX):", {
             reply_markup: {
@@ -404,15 +391,15 @@ bot.on("message", async (msg) => {
             return
           }
           currentState.orderData.phone = text
-          currentState.step = "awaiting_address"
-          await bot.sendMessage(chatId, "Введіть вашу адресу доставки (вулиця, будинок, квартира):", {
+          currentState.step = "awaiting_post_office"
+          await bot.sendMessage(chatId, "Введіть номер та назву пошти (наприклад: Нова Пошта №5, вул. Хрещатик 1):", {
             reply_markup: {
               inline_keyboard: [[{ text: "❌ Скасувати замовлення", callback_data: "cancel_order" }]],
             },
           })
           break
-        case "awaiting_address":
-          currentState.orderData.address = text
+        case "awaiting_post_office":
+          currentState.orderData.postOffice = text
           currentState.step = "awaiting_city"
           await bot.sendMessage(chatId, "Введіть ваше місто:", {
             reply_markup: {
@@ -492,8 +479,6 @@ async function showProduct(chatId, productId, userId) {
   const product = headphones[productId]
   if (!product) return
 
-  const currentWebhookUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://example.com"
-
   const productMessage = `🎧 ${product.name}
 
 ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰 Ціна: Уточнюйте"}
@@ -518,29 +503,20 @@ ${typeof product.price === "number" ? `💰 Ціна: $${product.price}` : "💰
   }
 
   try {
-    if (Array.isArray(product.images) && product.images.length > 0) {
-      const firstImageUrl = product.images[0]
-      console.log(`DEBUG: Attempting to send image for product ${productId}:`, firstImageUrl)
+    // Use placeholder image for all products to avoid errors
+    const placeholderUrl = `/placeholder.svg?height=400&width=400&text=${encodeURIComponent(product.name)}`
+    console.log(`DEBUG: Using placeholder for product ${productId}:`, placeholderUrl)
 
-      await bot.sendPhoto(chatId, firstImageUrl, {
-        caption: productMessage,
-        reply_markup: options.reply_markup,
-      })
+    await bot.sendPhoto(chatId, placeholderUrl, {
+      caption: productMessage,
+      reply_markup: options.reply_markup,
+    })
 
-      console.log(`DEBUG: Successfully sent image for product ${productId}`)
-    } else {
-      const imageUrl = `${currentWebhookUrl}/placeholder.svg?height=300&width=300&text=No+Image`
-      console.log(`DEBUG: No images found for product ${productId}, using placeholder:`, imageUrl)
-      await bot.sendPhoto(chatId, imageUrl, {
-        caption: productMessage,
-        reply_markup: options.reply_markup,
-      })
-    }
+    console.log(`DEBUG: Successfully sent placeholder for product ${productId}`)
   } catch (error) {
-    console.error(`Error sending product media/photo for ${productId}:`, error)
-    console.error(`Failed URL:`, product.images?.[0] || "No URL")
+    console.error(`Error sending product photo for ${productId}:`, error)
     try {
-      await bot.sendMessage(chatId, `Помилка завантаження фото. ${productMessage}`, options)
+      await bot.sendMessage(chatId, productMessage, options)
     } catch (fallbackError) {
       console.error("Error sending fallback message:", fallbackError)
     }
@@ -813,9 +789,8 @@ async function finalizeOrder(chatId, userId, orderData) {
   orderSummary += `--- Дані покупця ---\n`
   orderSummary += `👤 ПІБ: ${orderData.fullName}\n`
   orderSummary += `👨‍💻 Username: @${username}\n`
-  orderSummary += `📧 Email: ${orderData.email}\n`
   orderSummary += `📞 Телефон: ${orderData.phone}\n`
-  orderSummary += `🏠 Адреса: ${orderData.address}, ${orderData.city}\n\n`
+  orderSummary += `📮 Пошта: ${orderData.postOffice}, ${orderData.city}\n\n`
   orderSummary += `💳 Загальна сума: ${total > 0 ? `$${total}` : "Уточнюйте"}\n\n`
 
   const orderId = Date.now()
@@ -829,9 +804,8 @@ async function finalizeOrder(chatId, userId, orderData) {
     date: new Date().toISOString(),
     customerData: {
       fullName: orderData.fullName,
-      email: orderData.email,
       phone: orderData.phone,
-      address: orderData.address,
+      postOffice: orderData.postOffice,
       city: orderData.city,
       username: username,
     },
@@ -867,19 +841,35 @@ async function finalizeOrder(chatId, userId, orderData) {
   try {
     await bot.sendMessage(chatId, orderSummary, options)
 
-    if (ORDERS_CHANNEL_ID) {
+    console.log("DEBUG: Attempting to send to channel:", ORDERS_CHANNEL_ID)
+    if (ORDERS_CHANNEL_ID && ORDERS_CHANNEL_ID !== "undefined") {
       const channelMessage = `🔔 НОВЕ ЗАМОВЛЕННЯ #${orderId}\n\n${orderSummary}`
       try {
         await bot.sendMessage(ORDERS_CHANNEL_ID, channelMessage)
+        console.log("DEBUG: Successfully sent to channel")
       } catch (channelError) {
         console.error("Error sending channel notification:", channelError)
+        console.error("Channel ID used:", ORDERS_CHANNEL_ID)
+
+        // Fallback to admin
         if (ADMIN_ID) {
           try {
             const adminMessage = `🔔 НОВЕ ЗАМОВЛЕННЯ #${orderId}\n\n${orderSummary}`
             await bot.sendMessage(ADMIN_ID, adminMessage)
+            console.log("DEBUG: Sent to admin as fallback")
           } catch (adminError) {
             console.error("Error sending admin notification:", adminError)
           }
+        }
+      }
+    } else {
+      console.log("DEBUG: No valid channel ID, sending to admin")
+      if (ADMIN_ID) {
+        try {
+          const adminMessage = `🔔 НОВЕ ЗАМОВЛЕННЯ #${orderId}\n\n${orderSummary}`
+          await bot.sendMessage(ADMIN_ID, adminMessage)
+        } catch (adminError) {
+          console.error("Error sending admin notification:", adminError)
         }
       }
     }
