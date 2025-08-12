@@ -166,96 +166,229 @@ const colorEmojis = {
 }
 // ...existing code...
 
-// --- Адмін-функції ---
-// Перевірка чи користувач є адміністратором
-function isAdmin(userId) {
-  return String(userId) === String(ADMIN_ID);
-}
+// --- Стан для адмін-редагування ---
+const adminStates = new Map();
 
-// Зміна статусу замовлення
-bot.onText(/\/setstatus (\d+) (.+)/, async (msg, match) => {
+// --- Покрокова зміна статусу замовлення ---
+bot.onText(/\/setstatus/, async (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
   if (!isAdmin(userId)) {
     await bot.sendMessage(chatId, "❌ У вас немає доступу до цієї команди.");
     return;
   }
-  const orderId = match[1];
-  const newStatus = match[2];
   const orders = loadOrders();
-  const order = orders.find(o => String(o.id) === orderId);
-  if (!order) {
-    await bot.sendMessage(chatId, "❌ Замовлення не знайдено.");
+  if (!orders.length) {
+    await bot.sendMessage(chatId, "Замовлень немає.");
     return;
   }
-  order.status = newStatus;
-  saveOrders(orders);
-  await bot.sendMessage(chatId, `✅ Статус замовлення #${orderId} змінено на "${newStatus}".`);
+  // Вибір замовлення
+  const keyboard = orders.slice(-10).map(order => [
+    { text: `#${order.id} (${order.customerData.fullName})`, callback_data: `admin_status_${order.id}` }
+  ]);
+  await bot.sendMessage(chatId, "Оберіть замовлення для зміни статусу:", {
+    reply_markup: { inline_keyboard: keyboard }
+  });
+  adminStates.set(chatId, { step: "awaiting_status_order" });
 });
 
-// Додавання нового товару
-bot.onText(/\/addproduct (.+)/, async (msg, match) => {
+// --- Покрокове додавання/редагування товару ---
+bot.onText(/\/editproducts/, async (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
   if (!isAdmin(userId)) {
     await bot.sendMessage(chatId, "❌ У вас немає доступу до цієї команди.");
     return;
   }
-  // Формат: /addproduct id|Назва|Ціна|колір1,колір2|опис|url1,url2
-  const params = match[1].split("|");
-  if (params.length < 6) {
-    await bot.sendMessage(chatId, "❌ Формат: /addproduct id|Назва|Ціна|колір1,колір2|опис|url1,url2");
-    return;
-  }
-  const [id, name, price, colors, description, images] = params;
-  if (headphones[id]) {
-    await bot.sendMessage(chatId, "❌ Товар з таким id вже існує.");
-    return;
-  }
-  headphones[id] = {
-    name: name.trim(),
-    price: Number(price),
-    colors: colors.split(",").map(c => c.trim()),
-    images: images.split(",").map(u => u.trim()),
-    description: description.trim(),
-  };
-  await bot.sendMessage(chatId, `✅ Товар "${name}" додано.`);
+  const keyboard = Object.keys(headphones).map(id => [
+    { text: headphones[id].name, callback_data: `admin_edit_${id}` }
+  ]);
+  keyboard.push([{ text: "➕ Додати новий товар", callback_data: "admin_add_product" }]);
+  await bot.sendMessage(chatId, "Оберіть товар для редагування:", {
+    reply_markup: { inline_keyboard: keyboard }
+  });
+  adminStates.set(chatId, { step: "edit_select" });
 });
 
-// Видалення товару
-bot.onText(/\/delproduct (.+)/, async (msg, match) => {
-  const chatId = msg.chat.id;
-  const userId = msg.from.id;
-  if (!isAdmin(userId)) {
-    await bot.sendMessage(chatId, "❌ У вас немає доступу до цієї команди.");
+// --- Обробка callback_query для адмін-редагування ---
+bot.on("callback_query", async (query) => {
+  const chatId = query.message.chat.id;
+  const userId = query.from.id;
+  const data = query.data;
+
+  // --- Зміна статусу замовлення ---
+  if (data.startsWith("admin_status_")) {
+    if (!isAdmin(userId)) return;
+    const orderId = data.replace("admin_status_", "");
+    adminStates.set(chatId, { step: "awaiting_new_status", orderId });
+    await bot.sendMessage(chatId, "Введіть новий статус для замовлення:");
+    await bot.answerCallbackQuery(query.id);
     return;
   }
-  const id = match[1].trim();
-  if (!headphones[id]) {
-    await bot.sendMessage(chatId, "❌ Товар не знайдено.");
+
+  // --- Редагування товару ---
+  if (data.startsWith("admin_edit_")) {
+    if (!isAdmin(userId)) return;
+    const productId = data.replace("admin_edit_", "");
+    adminStates.set(chatId, { step: "edit_menu", productId });
+    await bot.sendMessage(chatId, "Що бажаєте змінити?", {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: "Змінити ціну", callback_data: `admin_edit_price_${productId}` }],
+          [{ text: "Змінити опис", callback_data: `admin_edit_desc_${productId}` }],
+          [{ text: "Видалити товар", callback_data: `admin_del_${productId}` }]
+        ]
+      }
+    });
+    await bot.answerCallbackQuery(query.id);
     return;
   }
-  delete headphones[id];
-  await bot.sendMessage(chatId, `✅ Товар "${id}" видалено.`);
+  if (data.startsWith("admin_edit_price_")) {
+    const productId = data.replace("admin_edit_price_", "");
+    adminStates.set(chatId, { step: "awaiting_new_price", productId });
+    await bot.sendMessage(chatId, "Введіть нову ціну:");
+    await bot.answerCallbackQuery(query.id);
+    return;
+  }
+  if (data.startsWith("admin_edit_desc_")) {
+    const productId = data.replace("admin_edit_desc_", "");
+    adminStates.set(chatId, { step: "awaiting_new_desc", productId });
+    await bot.sendMessage(chatId, "Введіть новий опис:");
+    await bot.answerCallbackQuery(query.id);
+    return;
+  }
+  if (data.startsWith("admin_del_")) {
+    const productId = data.replace("admin_del_", "");
+    if (headphones[productId]) {
+      delete headphones[productId];
+      await bot.sendMessage(chatId, "✅ Товар видалено.");
+    } else {
+      await bot.sendMessage(chatId, "❌ Товар не знайдено.");
+    }
+    await bot.answerCallbackQuery(query.id);
+    return;
+  }
+  if (data === "admin_add_product") {
+    adminStates.set(chatId, { step: "awaiting_new_product_id" });
+    await bot.sendMessage(chatId, "Введіть ID нового товару (латиницею):");
+    await bot.answerCallbackQuery(query.id);
+    return;
+  }
 });
 
-// Зміна ціни товару
-bot.onText(/\/setprice (\S+) (\d+)/, async (msg, match) => {
+// --- Обробка текстових відповідей для адмін-станів ---
+bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
-  if (!isAdmin(userId)) {
-    await bot.sendMessage(chatId, "❌ У вас немає доступу до цієї команди.");
+  const text = msg.text;
+  if (!isAdmin(userId)) return;
+
+  const state = adminStates.get(chatId);
+  if (!state) return;
+
+  // Зміна статусу замовлення
+  if (state.step === "awaiting_new_status") {
+    const orders = loadOrders();
+    const order = orders.find(o => String(o.id) === String(state.orderId));
+    if (!order) {
+      await bot.sendMessage(chatId, "❌ Замовлення не знайдено.");
+    } else {
+      order.status = text;
+      saveOrders(orders);
+      await bot.sendMessage(chatId, `✅ Статус замовлення #${order.id} змінено на "${text}".`);
+    }
+    adminStates.delete(chatId);
     return;
   }
-  const id = match[1];
-  const price = Number(match[2]);
-  if (!headphones[id]) {
-    await bot.sendMessage(chatId, "❌ Товар не знайдено.");
+
+  // Додавання нового товару
+  if (state.step === "awaiting_new_product_id") {
+    if (headphones[text]) {
+      await bot.sendMessage(chatId, "❌ Товар з таким ID вже існує. Введіть інший ID:");
+      return;
+    }
+    state.newProduct = { id: text };
+    state.step = "awaiting_new_product_name";
+    adminStates.set(chatId, state);
+    await bot.sendMessage(chatId, "Введіть назву товару:");
     return;
   }
-  headphones[id].price = price;
-  await bot.sendMessage(chatId, `✅ Ціну для "${headphones[id].name}" змінено на $${price}.`);
+  if (state.step === "awaiting_new_product_name") {
+    state.newProduct.name = text;
+    state.step = "awaiting_new_product_price";
+    adminStates.set(chatId, state);
+    await bot.sendMessage(chatId, "Введіть ціну товару:");
+    return;
+  }
+  if (state.step === "awaiting_new_product_price") {
+    const price = Number(text);
+    if (isNaN(price)) {
+      await bot.sendMessage(chatId, "❌ Введіть коректну ціну (число):");
+      return;
+    }
+    state.newProduct.price = price;
+    state.step = "awaiting_new_product_colors";
+    adminStates.set(chatId, state);
+    await bot.sendMessage(chatId, "Введіть кольори через кому (наприклад: black,white):");
+    return;
+  }
+  if (state.step === "awaiting_new_product_colors") {
+    state.newProduct.colors = text.split(",").map(c => c.trim());
+    state.step = "awaiting_new_product_desc";
+    adminStates.set(chatId, state);
+    await bot.sendMessage(chatId, "Введіть опис товару:");
+    return;
+  }
+  if (state.step === "awaiting_new_product_desc") {
+    state.newProduct.description = text;
+    state.step = "awaiting_new_product_images";
+    adminStates.set(chatId, state);
+    await bot.sendMessage(chatId, "Введіть посилання на зображення через кому:");
+    return;
+  }
+  if (state.step === "awaiting_new_product_images") {
+    state.newProduct.images = text.split(",").map(u => u.trim());
+    const { id, name, price, colors, description, images } = state.newProduct;
+    headphones[id] = { name, price, colors, description, images };
+    await bot.sendMessage(chatId, `✅ Товар "${name}" додано.`);
+    adminStates.delete(chatId);
+    return;
+  }
+
+  // Зміна ціни
+  if (state.step === "awaiting_new_price") {
+    const price = Number(text);
+    if (isNaN(price)) {
+      await bot.sendMessage(chatId, "❌ Введіть коректну ціну (число):");
+      return;
+    }
+    const product = headphones[state.productId];
+    if (!product) {
+      await bot.sendMessage(chatId, "❌ Товар не знайдено.");
+    } else {
+      product.price = price;
+      await bot.sendMessage(chatId, `✅ Ціну для "${product.name}" змінено на $${price}.`);
+    }
+    adminStates.delete(chatId);
+    return;
+  }
+  // Зміна опису
+  if (state.step === "awaiting_new_desc") {
+    const product = headphones[state.productId];
+    if (!product) {
+      await bot.sendMessage(chatId, "❌ Товар не знайдено.");
+    } else {
+      product.description = text;
+      await bot.sendMessage(chatId, `✅ Опис для "${product.name}" змінено.`);
+    }
+    adminStates.delete(chatId);
+    return;
+  }
 });
+
+// --- ВИДАЛІТЬ старі адмін-команди нижче (setstatus, addproduct, delproduct, setprice) ---
+// ...видаліть блоки з bot.onText(/\/setstatus ...), bot.onText(/\/addproduct ...), bot.onText(/\/delproduct ...), bot.onText(/\/setprice ...)
+// --- КІНЕЦЬ ВИДАЛЕННЯ ---
 
 // ...existing code...
 
