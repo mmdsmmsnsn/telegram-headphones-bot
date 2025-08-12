@@ -7,6 +7,9 @@ import { createClient } from "@supabase/supabase-js"
 console.log("DEBUG: Imports completed.")
 
 const token = process.env.TELEGRAM_BOT_TOKEN
+if (!token) {
+  throw new Error("TELEGRAM_BOT_TOKEN is not set!");
+}
 const app = express()
 const port = process.env.PORT || 3000
 
@@ -35,6 +38,11 @@ if (WEBHOOK_URL) {
 }
 
 app.use(express.json())
+
+// ДОДАЙТЕ ЦЮ ФУНКЦІЮ!
+function isAdmin(userId) {
+  return String(userId) === String(process.env.ADMIN_ID || 6486502899);
+}
 
 // Обробка webhook запитів
 app.post(`/api/webhook`, (req, res) => {
@@ -398,8 +406,6 @@ bot.on("message", async (msg) => {
 // --- ВИДАЛІТЬ старі адмін-команди нижче (setstatus, addproduct, delproduct, setprice) ---
 // ...видаліть блоки з bot.onText(/\/setstatus ...), bot.onText(/\/addproduct ...), bot.onText(/\/delproduct ...), bot.onText(/\/setprice ...)
 // --- КІНЕЦЬ ВИДАЛЕННЯ ---
-
-// ...existing code...
 
 // Зберігання кошиків користувачів (в пам'яті, дані втрачаються при перезапуску)
 const userCarts = new Map()
