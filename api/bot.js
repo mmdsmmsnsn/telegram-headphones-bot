@@ -12,8 +12,8 @@ const port = process.env.PORT || 3000
 
 console.log("DEBUG: Variables initialized. Token present:", !!token)
 
-const supabaseUrl = process.env.SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_ANON_KEY
+const supabaseUrl = process.env.SUPABASE_URL1
+const supabaseKey = process.env.SUPABASE_ANON_KEY1
 let supabase = null
 
 if (supabaseUrl && supabaseKey) {
