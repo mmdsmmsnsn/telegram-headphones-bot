@@ -214,6 +214,51 @@ async function saveOrderToSupabase(order) {
   }
 }
 
+
+// ===== ДОДАНО: Функції для роботи з Supabase клієнтами =====
+async function getCustomerFromSupabase(userId) {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from("customers")
+      .select("*")
+      .eq("id", userId)
+      .single();
+    if (error && error.code !== "PGRST116") { // PGRST116 - no rows found
+      console.error("Error fetching customer:", error);
+    }
+    return data || null;
+  } catch (err) {
+    console.error("Error in getCustomerFromSupabase:", err);
+    return null;
+  }
+}
+
+async function saveCustomerToSupabase(order) {
+  if (!supabase) return false;
+  try {
+    const { error } = await supabase.from("customers").upsert([
+      {
+        id: order.userId,
+        full_name: order.customerData.fullName,
+        phone: order.customerData.phone,
+        post_office: order.customerData.postOffice,
+        city: order.customerData.city,
+        username: order.customerData.username,
+        created_at: new Date().toISOString()
+      }
+    ]);
+    if (error) {
+      console.error("Error saving customer:", error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("Error in saveCustomerToSupabase:", err);
+    return false;
+  }
+}
+
 const allOrders = loadOrders()
 
 // ID адміністратора
@@ -237,6 +282,7 @@ bot.onText(/\/start/, async (msg) => {
       inline_keyboard: [
         [{ text: "🛍️ Переглянути каталог", callback_data: "catalog" }],
         [{ text: "🛒 Мій кошик", callback_data: "cart" }],
+        [{ text: "⚡ Швидке замовлення", callback_data: "quick_checkout" }],
         [{ text: "ℹ️ Про нас", callback_data: "about" }],
       ],
     },
@@ -337,7 +383,27 @@ bot.on("callback_query", async (callbackQuery) => {
       await removeFromCart(chatId, userId, itemIndex)
     } else if (data === "checkout") {
       await startCheckout(chatId, userId)
-    } else if (data === "back_to_catalog") {
+    } else if (data === "quick_checkout") {
+      const customer = await getCustomerFromSupabase(userId);
+      const cart = userCarts.get(userId) || [];
+      if (cart.length === 0) {
+        await bot.sendMessage(chatId, "❌ Ваш кошик порожній.");
+        return;
+      }
+      if (!customer) {
+        await bot.sendMessage(chatId, "ℹ️ Дані не знайдені. Будь ласка, заповніть замовлення звичайним способом.");
+        await startCheckout(chatId, userId);
+        return;
+      }
+      const orderData = {
+        fullName: customer.full_name,
+        phone: customer.phone,
+        postOffice: customer.post_office,
+        city: customer.city,
+        cart: cart
+      };
+      await finalizeOrder(chatId, userId, orderData);
+} else if (data === "back_to_catalog") {
       await showCatalog(chatId)
     } else if (data === "back_to_main") {
       await showMainMenu(chatId)
@@ -436,6 +502,7 @@ async function showMainMenu(chatId) {
       inline_keyboard: [
         [{ text: "🛍️ Переглянути каталог", callback_data: "catalog" }],
         [{ text: "🛒 Мій кошик", callback_data: "cart" }],
+        [{ text: "⚡ Швидке замовлення", callback_data: "quick_checkout" }],
         [{ text: "ℹ️ Про нас", callback_data: "about" }],
       ],
     },
@@ -649,6 +716,7 @@ async function showCart(chatId, userId) {
 
   keyboard.push(
     [{ text: "💳 Оформити замовлення", callback_data: "checkout" }],
+    [{ text: "⬅️ Назад до каталогу", callback_data: "back_to_catalog" }],
     [{ text: "🛍️ Продовжити покупки", callback_data: "catalog" }],
   )
 
@@ -820,6 +888,7 @@ async function finalizeOrder(chatId, userId, orderData) {
     status: "новий",
   }
 
+  await saveCustomerToSupabase(order);
   allOrders.push(order)
   saveOrders(allOrders)
 
