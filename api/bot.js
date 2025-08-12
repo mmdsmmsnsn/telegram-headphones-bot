@@ -23,7 +23,17 @@ if (supabaseUrl && supabaseKey) {
   console.log("DEBUG: Supabase not configured, using JSON file storage")
 }
 
-const bot = new TelegramBot(token)
+const bot = new TelegramBot(token, { webHook: true });
+
+const WEBHOOK_URL = process.env.WEBHOOK_URL; // додайте цю змінну у Vercel, наприклад: https://your-vercel-domain.vercel.app
+
+if (WEBHOOK_URL) {
+  bot.setWebHook(`${WEBHOOK_URL}/api/webhook`);
+  console.log("DEBUG: Webhook set to:", `${WEBHOOK_URL}/api/webhook`);
+} else {
+  console.log("ERROR: WEBHOOK_URL is not set!");
+}
+
 app.use(express.json())
 
 // Обробка webhook запитів
@@ -164,7 +174,6 @@ const colorEmojis = {
   light_blue: "💧 Світло-блакитний",
   cream: "🍦 Кремовий",
 }
-// ...existing code...
 
 // --- Стан для адмін-редагування ---
 const adminStates = new Map();
