@@ -164,6 +164,100 @@ const colorEmojis = {
   light_blue: "💧 Світло-блакитний",
   cream: "🍦 Кремовий",
 }
+// ...existing code...
+
+// --- Адмін-функції ---
+// Перевірка чи користувач є адміністратором
+function isAdmin(userId) {
+  return String(userId) === String(ADMIN_ID);
+}
+
+// Зміна статусу замовлення
+bot.onText(/\/setstatus (\d+) (.+)/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  if (!isAdmin(userId)) {
+    await bot.sendMessage(chatId, "❌ У вас немає доступу до цієї команди.");
+    return;
+  }
+  const orderId = match[1];
+  const newStatus = match[2];
+  const orders = loadOrders();
+  const order = orders.find(o => String(o.id) === orderId);
+  if (!order) {
+    await bot.sendMessage(chatId, "❌ Замовлення не знайдено.");
+    return;
+  }
+  order.status = newStatus;
+  saveOrders(orders);
+  await bot.sendMessage(chatId, `✅ Статус замовлення #${orderId} змінено на "${newStatus}".`);
+});
+
+// Додавання нового товару
+bot.onText(/\/addproduct (.+)/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  if (!isAdmin(userId)) {
+    await bot.sendMessage(chatId, "❌ У вас немає доступу до цієї команди.");
+    return;
+  }
+  // Формат: /addproduct id|Назва|Ціна|колір1,колір2|опис|url1,url2
+  const params = match[1].split("|");
+  if (params.length < 6) {
+    await bot.sendMessage(chatId, "❌ Формат: /addproduct id|Назва|Ціна|колір1,колір2|опис|url1,url2");
+    return;
+  }
+  const [id, name, price, colors, description, images] = params;
+  if (headphones[id]) {
+    await bot.sendMessage(chatId, "❌ Товар з таким id вже існує.");
+    return;
+  }
+  headphones[id] = {
+    name: name.trim(),
+    price: Number(price),
+    colors: colors.split(",").map(c => c.trim()),
+    images: images.split(",").map(u => u.trim()),
+    description: description.trim(),
+  };
+  await bot.sendMessage(chatId, `✅ Товар "${name}" додано.`);
+});
+
+// Видалення товару
+bot.onText(/\/delproduct (.+)/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  if (!isAdmin(userId)) {
+    await bot.sendMessage(chatId, "❌ У вас немає доступу до цієї команди.");
+    return;
+  }
+  const id = match[1].trim();
+  if (!headphones[id]) {
+    await bot.sendMessage(chatId, "❌ Товар не знайдено.");
+    return;
+  }
+  delete headphones[id];
+  await bot.sendMessage(chatId, `✅ Товар "${id}" видалено.`);
+});
+
+// Зміна ціни товару
+bot.onText(/\/setprice (\S+) (\d+)/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  if (!isAdmin(userId)) {
+    await bot.sendMessage(chatId, "❌ У вас немає доступу до цієї команди.");
+    return;
+  }
+  const id = match[1];
+  const price = Number(match[2]);
+  if (!headphones[id]) {
+    await bot.sendMessage(chatId, "❌ Товар не знайдено.");
+    return;
+  }
+  headphones[id].price = price;
+  await bot.sendMessage(chatId, `✅ Ціну для "${headphones[id].name}" змінено на $${price}.`);
+});
+
+// ...existing code...
 
 // Зберігання кошиків користувачів (в пам'яті, дані втрачаються при перезапуску)
 const userCarts = new Map()
