@@ -1,47 +1,33 @@
-console.log("DEBUG: Bot file execution started at top of file!")
-import TelegramBot from "node-telegram-bot-api"
-import express from "express"
-import fs from "fs"
-import { createClient } from "@supabase/supabase-js"
+import TelegramBot from "node-telegram-bot-api";
+import express from "express";
+import fs from "fs";
+import { createClient } from "@supabase/supabase-js";
 
-console.log("DEBUG: Imports completed.")
+console.log("DEBUG: Bot file execution started at top of file!");
+console.log("DEBUG: Imports completed.");
 
-const token = process.env.TELEGRAM_BOT_TOKEN
-if (!token) {
-  throw new Error("TELEGRAM_BOT_TOKEN is not set!");
-}
-const app = express()
-const port = process.env.PORT || 3000
+const token = process.env.TELEGRAM_BOT_TOKEN;
+const supabaseUrl = process.env.SUPABASE_URL1;
+const supabaseKey = process.env.SUPABASE_ANON_KEY1;
+const WEBHOOK_URL = process.env.WEBHOOK_URL;
+// const ADMIN_ID = process.env.ADMIN_ID || "6486502899";
 
-console.log("DEBUG: Variables initialized. Token present:", !!token)
+if (!token) throw new Error("TELEGRAM_BOT_TOKEN is not set!");
+if (!supabaseUrl) throw new Error("SUPABASE_URL1 is not set!");
+if (!supabaseKey) throw new Error("SUPABASE_ANON_KEY1 is not set!");
+if (!WEBHOOK_URL) throw new Error("WEBHOOK_URL is not set!");
 
-const supabaseUrl = process.env.SUPABASE_URL1
-const supabaseKey = process.env.SUPABASE_ANON_KEY1
-let supabase = null
+const app = express();
+app.use(express.json());
 
-if (supabaseUrl && supabaseKey) {
-  supabase = createClient(supabaseUrl, supabaseKey)
-  console.log("DEBUG: Supabase client initialized")
-} else {
-  console.log("DEBUG: Supabase not configured, using JSON file storage")
-}
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const bot = new TelegramBot(token, { webHook: true });
 
-const WEBHOOK_URL = process.env.WEBHOOK_URL; // додайте цю змінну у Vercel, наприклад: https://your-vercel-domain.vercel.app
+bot.setWebHook(`${WEBHOOK_URL}/api/webhook`);
 
-if (WEBHOOK_URL) {
-  bot.setWebHook(`${WEBHOOK_URL}/api/webhook`);
-  console.log("DEBUG: Webhook set to:", `${WEBHOOK_URL}/api/webhook`);
-} else {
-  console.log("ERROR: WEBHOOK_URL is not set!");
-}
-
-app.use(express.json())
-
-// ДОДАЙТЕ ЦЮ ФУНКЦІЮ!
 function isAdmin(userId) {
-  return String(userId) === String(process.env.ADMIN_ID || 6486502899);
+  return String(userId) === String(ADMIN_ID);
 }
 
 // Обробка webhook запитів
@@ -54,7 +40,7 @@ app.post(`/api/webhook`, (req, res) => {
 // Здоров'я сервісу
 app.get("/", (req, res) => {
   console.log("Received root path request on /!")
-  res.send("Telegram Bot is running!")
+  res.send("Bot is running!")
 })
 
 // --- База даних товарів ---
@@ -504,7 +490,7 @@ async function saveCustomerToSupabase(order) {
 const allOrders = loadOrders()
 
 // ID адміністратора
-const ADMIN_ID = process.env.ADMIN_ID || 6486502899
+const ADMIN_ID = process.env.ADMIN_ID || "6486502899"
 
 const ORDERS_CHANNEL_ID = process.env.ORDERS_CHANNEL_ID || "-1002534353239"
 
