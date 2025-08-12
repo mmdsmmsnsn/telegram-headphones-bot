@@ -1,34 +1,30 @@
-import TelegramBot from "node-telegram-bot-api";
-import express from "express";
-import fs from "fs";
-import { createClient } from "@supabase/supabase-js";
+console.log("DEBUG: Bot file execution started at top of file!")
+import TelegramBot from "node-telegram-bot-api"
+import express from "express"
+import fs from "fs"
+import { createClient } from "@supabase/supabase-js"
 
-console.log("DEBUG: Bot file execution started at top of file!");
-console.log("DEBUG: Imports completed.");
+console.log("DEBUG: Imports completed.")
 
-const token = process.env.TELEGRAM_BOT_TOKEN;
-const supabaseUrl = process.env.SUPABASE_URL1;
-const supabaseKey = process.env.SUPABASE_ANON_KEY1;
-const WEBHOOK_URL = process.env.WEBHOOK_URL;
-// const ADMIN_ID = process.env.ADMIN_ID || "6486502899";
+const token = process.env.TELEGRAM_BOT_TOKEN
+const app = express()
+const port = process.env.PORT || 3000
 
-if (!token) throw new Error("TELEGRAM_BOT_TOKEN is not set!");
-if (!supabaseUrl) throw new Error("SUPABASE_URL1 is not set!");
-if (!supabaseKey) throw new Error("SUPABASE_ANON_KEY1 is not set!");
-if (!WEBHOOK_URL) throw new Error("WEBHOOK_URL is not set!");
+console.log("DEBUG: Variables initialized. Token present:", !!token)
 
-const app = express();
-app.use(express.json());
+const supabaseUrl = process.env.SUPABASE_URL
+const supabaseKey = process.env.SUPABASE_ANON_KEY
+let supabase = null
 
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-const bot = new TelegramBot(token, { webHook: true });
-
-bot.setWebHook(`${WEBHOOK_URL}/api/webhook`);
-
-function isAdmin(userId) {
-  return String(userId) === String(ADMIN_ID);
+if (supabaseUrl && supabaseKey) {
+  supabase = createClient(supabaseUrl, supabaseKey)
+  console.log("DEBUG: Supabase client initialized")
+} else {
+  console.log("DEBUG: Supabase not configured, using JSON file storage")
 }
+
+const bot = new TelegramBot(token)
+app.use(express.json())
 
 // Обробка webhook запитів
 app.post(`/api/webhook`, (req, res) => {
@@ -40,7 +36,7 @@ app.post(`/api/webhook`, (req, res) => {
 // Здоров'я сервісу
 app.get("/", (req, res) => {
   console.log("Received root path request on /!")
-  res.send("Bot is running!")
+  res.send("Telegram Bot is running!")
 })
 
 // --- База даних товарів ---
@@ -169,230 +165,6 @@ const colorEmojis = {
   cream: "🍦 Кремовий",
 }
 
-// --- Стан для адмін-редагування ---
-const adminStates = new Map();
-
-// --- Покрокова зміна статусу замовлення ---
-bot.onText(/\/setstatus/, async (msg) => {
-  const chatId = msg.chat.id;
-  const userId = msg.from.id;
-  if (!isAdmin(userId)) {
-    await bot.sendMessage(chatId, "❌ У вас немає доступу до цієї команди.");
-    return;
-  }
-  const orders = loadOrders();
-  if (!orders.length) {
-    await bot.sendMessage(chatId, "Замовлень немає.");
-    return;
-  }
-  // Вибір замовлення
-  const keyboard = orders.slice(-10).map(order => [
-    { text: `#${order.id} (${order.customerData.fullName})`, callback_data: `admin_status_${order.id}` }
-  ]);
-  await bot.sendMessage(chatId, "Оберіть замовлення для зміни статусу:", {
-    reply_markup: { inline_keyboard: keyboard }
-  });
-  adminStates.set(chatId, { step: "awaiting_status_order" });
-});
-
-// --- Покрокове додавання/редагування товару ---
-bot.onText(/\/editproducts/, async (msg) => {
-  const chatId = msg.chat.id;
-  const userId = msg.from.id;
-  if (!isAdmin(userId)) {
-    await bot.sendMessage(chatId, "❌ У вас немає доступу до цієї команди.");
-    return;
-  }
-  const keyboard = Object.keys(headphones).map(id => [
-    { text: headphones[id].name, callback_data: `admin_edit_${id}` }
-  ]);
-  keyboard.push([{ text: "➕ Додати новий товар", callback_data: "admin_add_product" }]);
-  await bot.sendMessage(chatId, "Оберіть товар для редагування:", {
-    reply_markup: { inline_keyboard: keyboard }
-  });
-  adminStates.set(chatId, { step: "edit_select" });
-});
-
-// --- Обробка callback_query для адмін-редагування ---
-bot.on("callback_query", async (query) => {
-  const chatId = query.message.chat.id;
-  const userId = query.from.id;
-  const data = query.data;
-
-  // --- Зміна статусу замовлення ---
-  if (data.startsWith("admin_status_")) {
-    if (!isAdmin(userId)) return;
-    const orderId = data.replace("admin_status_", "");
-    adminStates.set(chatId, { step: "awaiting_new_status", orderId });
-    await bot.sendMessage(chatId, "Введіть новий статус для замовлення:");
-    await bot.answerCallbackQuery(query.id);
-    return;
-  }
-
-  // --- Редагування товару ---
-  if (data.startsWith("admin_edit_")) {
-    if (!isAdmin(userId)) return;
-    const productId = data.replace("admin_edit_", "");
-    adminStates.set(chatId, { step: "edit_menu", productId });
-    await bot.sendMessage(chatId, "Що бажаєте змінити?", {
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: "Змінити ціну", callback_data: `admin_edit_price_${productId}` }],
-          [{ text: "Змінити опис", callback_data: `admin_edit_desc_${productId}` }],
-          [{ text: "Видалити товар", callback_data: `admin_del_${productId}` }]
-        ]
-      }
-    });
-    await bot.answerCallbackQuery(query.id);
-    return;
-  }
-  if (data.startsWith("admin_edit_price_")) {
-    const productId = data.replace("admin_edit_price_", "");
-    adminStates.set(chatId, { step: "awaiting_new_price", productId });
-    await bot.sendMessage(chatId, "Введіть нову ціну:");
-    await bot.answerCallbackQuery(query.id);
-    return;
-  }
-  if (data.startsWith("admin_edit_desc_")) {
-    const productId = data.replace("admin_edit_desc_", "");
-    adminStates.set(chatId, { step: "awaiting_new_desc", productId });
-    await bot.sendMessage(chatId, "Введіть новий опис:");
-    await bot.answerCallbackQuery(query.id);
-    return;
-  }
-  if (data.startsWith("admin_del_")) {
-    const productId = data.replace("admin_del_", "");
-    if (headphones[productId]) {
-      delete headphones[productId];
-      await bot.sendMessage(chatId, "✅ Товар видалено.");
-    } else {
-      await bot.sendMessage(chatId, "❌ Товар не знайдено.");
-    }
-    await bot.answerCallbackQuery(query.id);
-    return;
-  }
-  if (data === "admin_add_product") {
-    adminStates.set(chatId, { step: "awaiting_new_product_id" });
-    await bot.sendMessage(chatId, "Введіть ID нового товару (латиницею):");
-    await bot.answerCallbackQuery(query.id);
-    return;
-  }
-});
-
-// --- Обробка текстових відповідей для адмін-станів ---
-bot.on("message", async (msg) => {
-  const chatId = msg.chat.id;
-  const userId = msg.from.id;
-  const text = msg.text;
-  if (!isAdmin(userId)) return;
-
-  const state = adminStates.get(chatId);
-  if (!state) return;
-
-  // Зміна статусу замовлення
-  if (state.step === "awaiting_new_status") {
-    const orders = loadOrders();
-    const order = orders.find(o => String(o.id) === String(state.orderId));
-    if (!order) {
-      await bot.sendMessage(chatId, "❌ Замовлення не знайдено.");
-    } else {
-      order.status = text;
-      saveOrders(orders);
-      await bot.sendMessage(chatId, `✅ Статус замовлення #${order.id} змінено на "${text}".`);
-    }
-    adminStates.delete(chatId);
-    return;
-  }
-
-  // Додавання нового товару
-  if (state.step === "awaiting_new_product_id") {
-    if (headphones[text]) {
-      await bot.sendMessage(chatId, "❌ Товар з таким ID вже існує. Введіть інший ID:");
-      return;
-    }
-    state.newProduct = { id: text };
-    state.step = "awaiting_new_product_name";
-    adminStates.set(chatId, state);
-    await bot.sendMessage(chatId, "Введіть назву товару:");
-    return;
-  }
-  if (state.step === "awaiting_new_product_name") {
-    state.newProduct.name = text;
-    state.step = "awaiting_new_product_price";
-    adminStates.set(chatId, state);
-    await bot.sendMessage(chatId, "Введіть ціну товару:");
-    return;
-  }
-  if (state.step === "awaiting_new_product_price") {
-    const price = Number(text);
-    if (isNaN(price)) {
-      await bot.sendMessage(chatId, "❌ Введіть коректну ціну (число):");
-      return;
-    }
-    state.newProduct.price = price;
-    state.step = "awaiting_new_product_colors";
-    adminStates.set(chatId, state);
-    await bot.sendMessage(chatId, "Введіть кольори через кому (наприклад: black,white):");
-    return;
-  }
-  if (state.step === "awaiting_new_product_colors") {
-    state.newProduct.colors = text.split(",").map(c => c.trim());
-    state.step = "awaiting_new_product_desc";
-    adminStates.set(chatId, state);
-    await bot.sendMessage(chatId, "Введіть опис товару:");
-    return;
-  }
-  if (state.step === "awaiting_new_product_desc") {
-    state.newProduct.description = text;
-    state.step = "awaiting_new_product_images";
-    adminStates.set(chatId, state);
-    await bot.sendMessage(chatId, "Введіть посилання на зображення через кому:");
-    return;
-  }
-  if (state.step === "awaiting_new_product_images") {
-    state.newProduct.images = text.split(",").map(u => u.trim());
-    const { id, name, price, colors, description, images } = state.newProduct;
-    headphones[id] = { name, price, colors, description, images };
-    await bot.sendMessage(chatId, `✅ Товар "${name}" додано.`);
-    adminStates.delete(chatId);
-    return;
-  }
-
-  // Зміна ціни
-  if (state.step === "awaiting_new_price") {
-    const price = Number(text);
-    if (isNaN(price)) {
-      await bot.sendMessage(chatId, "❌ Введіть коректну ціну (число):");
-      return;
-    }
-    const product = headphones[state.productId];
-    if (!product) {
-      await bot.sendMessage(chatId, "❌ Товар не знайдено.");
-    } else {
-      product.price = price;
-      await bot.sendMessage(chatId, `✅ Ціну для "${product.name}" змінено на $${price}.`);
-    }
-    adminStates.delete(chatId);
-    return;
-  }
-  // Зміна опису
-  if (state.step === "awaiting_new_desc") {
-    const product = headphones[state.productId];
-    if (!product) {
-      await bot.sendMessage(chatId, "❌ Товар не знайдено.");
-    } else {
-      product.description = text;
-      await bot.sendMessage(chatId, `✅ Опис для "${product.name}" змінено.`);
-    }
-    adminStates.delete(chatId);
-    return;
-  }
-});
-
-// --- ВИДАЛІТЬ старі адмін-команди нижче (setstatus, addproduct, delproduct, setprice) ---
-// ...видаліть блоки з bot.onText(/\/setstatus ...), bot.onText(/\/addproduct ...), bot.onText(/\/delproduct ...), bot.onText(/\/setprice ...)
-// --- КІНЕЦЬ ВИДАЛЕННЯ ---
-
 // Зберігання кошиків користувачів (в пам'яті, дані втрачаються при перезапуску)
 const userCarts = new Map()
 
@@ -490,7 +262,7 @@ async function saveCustomerToSupabase(order) {
 const allOrders = loadOrders()
 
 // ID адміністратора
-const ADMIN_ID = process.env.ADMIN_ID || "6486502899"
+const ADMIN_ID = process.env.ADMIN_ID || 6486502899
 
 const ORDERS_CHANNEL_ID = process.env.ORDERS_CHANNEL_ID || "-1002534353239"
 
