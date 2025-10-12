@@ -2,14 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "API/bot.js", // Шлях до вашого коду
+      "src": "API/bot.js", 
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/api/webhook", // Шлях, який використовує Telegram
-      "dest": "/API/bot.js" // Шлях до файлу коду
+      "src": "/api/webhook",
+      "dest": "/API/bot.js" 
     }
   ]
 }
