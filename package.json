@@ -1,5 +1,4 @@
 {
-<<<<<<< HEAD
   "name": "telegram-headphones-bot",
   "version": "1.0.0",
   "description": "Telegram bot for selling headphones",
@@ -18,17 +17,5 @@
   },
   "engines": {
     "node": ">=18.0.0"
-=======
-  "name": "corebox-shop-bot",
-  "version": "1.0.0",
-  "description": "Telegram Shop Bot on Vercel",
-  "main": "API/bot.js",
-  "scripts": {
-    "start": "node API/bot.js"
-  },
-  "dependencies": {
-    "telegraf": "^4.0.0",
-    "dotenv": "^16.4.5"
->>>>>>> 24464595858995fafaa3496d4dc162db45835674
   }
 }
